@@ -1,12 +1,18 @@
 import 'dotenv/config'; // If it is at line one that is good.
 import express from 'express'; // import express lib // using ES Modules instead of old commonJS
+import cors from 'cors';
 
 const app = express() // create express instance
 const PORT = process.env.PORT || 3000;
 app.use(express.json()); // important for body parsing
+app.use(cors({
+    origin: 'http://localhost:5173',
+    methods: ['get', 'post', 'put', 'delete'],
+    credentials: true
+}))
 
 app.get('/', (req, res) => {
-    res.send('Welcome to the site!!')
+    res.json('Welcome to the site!!')
 })
 
 const server = app.listen(PORT, () => {
