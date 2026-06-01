@@ -28,7 +28,16 @@ const userSchema = mongoose.Schema({
         type: String,
         require: [true, 'please enter your password.'],
         minLength: [6, 'Password must contain atleast 5 letters.'],
-        maxLength: [25, 'Password must not be greater than 25 letters.']
+        maxLength: [25, 'Password must not be greater than 25 letters.'],
+        
+    },
+    refreshToken: {
+        type: String,
+        expiredAt: Date,
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
     }
 },
 {
