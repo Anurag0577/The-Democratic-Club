@@ -2,18 +2,22 @@ import 'dotenv/config'; // If it is at line one that is good.
 import express from 'express'; // import express lib // using ES Modules instead of old commonJS
 import cors from 'cors';
 import {connectDB} from './Database/db.js'
+import auth from './Routes/auth.route.js'
+
 const app = express() // create express instance
 const PORT = process.env.PORT || 3000;
 app.use(express.json()); // important for body parsing
 app.use(cors({
     origin: 'http://localhost:5173',
-    methods: ['get', 'post', 'put', 'delete'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }))
 
 app.get('/', (req, res) => {
     res.json(`Welcome to '🏛️ The Democratic Club' `)
 })
+
+app.use('/user', auth )
 
 // catch all the requests that are comming on the endpoints that does not exist
 app.use((req, res) => {
