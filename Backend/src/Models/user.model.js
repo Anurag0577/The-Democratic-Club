@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { passwordHashing, passwordCompare, checkingPasswordStrength } from './../Utiles/passwordManager.js'
 
 const userSchema = mongoose.Schema({
     firstname: {
@@ -18,7 +19,7 @@ const userSchema = mongoose.Schema({
         trim: true,
     },
     email: {
-        type: email,
+        type: String,
         require: [true, 'Please write you email address.'],
         unique: true,
         match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email'],
@@ -44,6 +45,26 @@ const userSchema = mongoose.Schema({
     timeStamp: true
 }
 )
+
+
+// middleware that hashed the password before saving into a database
+userSchema.pre('save', async function(){
+    if (!this.isModified('password')) return;
+
+    const { isValid, errors } = await checkingPasswordStrength(this.password);
+    if (!isValid) {
+        throw new Error(`Password validation failed: ${errors.join(', ')}`);
+    }
+
+    this.password = await passwordHashing(this.password);
+});
+
+
+// Instance methods : mongoose provide this .methods this means you are saying: 'hey Mongoose, when the document is created '
+userSchema.methods.comparePassword = async function(condidatePassword){
+    return await passwordCompare(condidatePassword, this.password)
+}
+
 
 /*
 FIRST REASON
