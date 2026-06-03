@@ -4,8 +4,12 @@ function App() {
   const [data, setData] = useState(null)
 
   useEffect(() => {
-    const response = fetch('http://localhost:3000/')
-    response.then((res) => res.json()).then(setData)
+    const response = fetch('http://localhost:3000/', {
+      method: 'GET',
+      credentials: 'include'
+    })
+    response.then((res) => res.json())
+    .then(setData)
   }, [])
   
   console.log('Data fetched successfully:', data)
