@@ -1,21 +1,13 @@
-import { useEffect, useState } from 'react'
+// import { Signup } from './pages/Signup.jsx'
+import { Login } from './pages/Login.jsx'
+
 
 function App() {
-  const [data, setData] = useState(null)
 
-  useEffect(() => {
-    const response = fetch('http://localhost:3000/', {
-      method: 'GET',
-      credentials: 'include'
-    })
-    response.then((res) => res.json())
-    .then(setData)
-  }, [])
-  
-  console.log('Data fetched successfully:', data)
   return (
     <>
-      <h1>{data}</h1>
+      {/* <Signup /> */}
+      <Login />
     </>
   )
 }
