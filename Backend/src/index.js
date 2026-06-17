@@ -3,9 +3,13 @@ import express from 'express'; // import express lib // using ES Modules instead
 import cors from 'cors';
 import {connectDB} from './Database/db.js'
 import auth from './Routes/auth.route.js'
+import dashboard from './Routes/dashboard.route.js'
+import { ApiError } from './Utiles/ErrorHandler.js'
+import cookieParser from 'cookie-parser'
 
 const app = express() // create express instance
 const PORT = process.env.PORT || 3000;
+app.use(cookieParser())
 app.use(express.json()); // important for body parsing
 app.use(cors({
     origin: 'http://localhost:5173',
@@ -13,15 +17,36 @@ app.use(cors({
     credentials: true
 }))
 
-app.get('/', (req, res) => {
-    res.json(`Welcome to '🏛️ The Democratic Club' `)
-})
 
-app.use('/user', auth )
+app.use('/api/info', dashboard )
+app.use('/api/user', auth )
 
 // catch all the requests that are comming on the endpoints that does not exist
 app.use((req, res) => {
     res.status(404).json('This route is not available.')
+})
+
+// Global error handler — maps known errors to proper HTTP responses
+app.use((err, req, res, next) => {
+    if (!err) return next()
+
+    // jsonwebtoken errors
+    if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({ success: false, message: 'JWT expired' })
+    }
+
+    if (err.name === 'JsonWebTokenError') {
+        return res.status(401).json({ success: false, message: 'Invalid token' })
+    }
+
+    // Custom ApiError from application
+    if (err instanceof ApiError) {
+        return res.status(err.statusCode || 500).json({ success: false, message: err.message, data: err.data || null })
+    }
+
+    // Fallback — unexpected errors
+    console.error(err)
+    return res.status(500).json({ success: false, message: 'Internal Server Error' })
 })
 
 // First the DB connect then only the server start running
