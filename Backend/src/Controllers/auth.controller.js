@@ -38,8 +38,16 @@ const userRegistration = asyncHandler(async(req, res) => {
         lastname: newUser.lastname,
         email: newUser.email,
         accessToken,
-        
     }
+
+    // sending refresh token but in cookies
+
+    res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        // secure: true,
+        sameSite: 'strict',
+        maxAge: 60 * 60 * 24 * 7 * 1000
+    })
 
     // sending response
     res.status(200).json(new ApiResponse(200, 'User registration successfull!', response))
@@ -75,6 +83,14 @@ const userLogin = asyncHandler(async(req, res) => {
             email: foundUser.email,
             accessToken
         }
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            // secure: true,
+            sameSite: 'strict',
+            maxAge: 7*24*60*60*1000
+        })
+
         return res.status(200).json(new ApiResponse(200, "User login successfull", response))
     } else{
         return res.status(401).json(new ApiResponse(401, 'User login failed! Please enter correct email or password.'))
@@ -88,13 +104,14 @@ const tokenRegeneration = asyncHandler( async (req, res) => {
 
     // if there is no refresh token throw error
     if(!incomingRefreshToken) throw new ApiError(401, 'Did not find incoming refresh token!')
-
+        
     try {
-        const decodedUser = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_EXPIRY);
+        console.log('before decoded user')
+        const decodedUser = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+        console.log('after decoded user', decodedUser)
         if(!decodedUser) throw new ApiError(401, 'Incoming refresh token verification failed!')
-        console.log(decodedUser)
         // find user via decoded user email
-        const foundUser = await User.findOne({email})
+        const foundUser = await User.findOne({email: decodedUser.email})
         if(!foundUser || foundUser.refreshToken !== incomingRefreshToken ) throw new ApiError(401, 'Refresh token is expired or used')
 
         // generate access token
@@ -103,7 +120,8 @@ const tokenRegeneration = asyncHandler( async (req, res) => {
         return res.status(200).json(new ApiResponse(200, 'Access token regenerated!', {accessToken}))
 
     } catch (err) {
-        throw new ApiError(401, err?.message || "Invalid Refresh Token");
+        console.log('this is the error reason', err)
+        throw new ApiError(401, "Invalid Refresh Token");
     }
 
 })

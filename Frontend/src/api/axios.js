@@ -1,9 +1,9 @@
 import axios from 'axios'
 const SKIP_SOME_PATH = ['/login', '/signup'];
-const URL = 'http://localhost/3000';
+const URL = 'http://localhost:3000/api';
 
 const api = axios.create({
-    url: URL,
+    baseURL: URL,
     headers: {
         "Content-Type": "application/json",
     },
@@ -25,8 +25,11 @@ const api = axios.create({
         if(accessToken){
             config.headers['Authorization'] = `Bearer ${accessToken}`;
             console.log('request interceptor executed!')
+            console.log(config)
             return config;
         }
+
+        return config;
 
     }, 
     error => Promise.reject(error)
@@ -41,9 +44,10 @@ const api = axios.create({
             // check any 401 or 403 error occurs or retry is true in for the api
             if((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry){
                 originalRequest._retry = true;
+                console.log('There is an error so now going to generate new access token from the refresh token')
                 try {
                     const res = await axios.post(
-                        `${URL}/api/auth/newAccessToken`,
+                        `${URL}/user/newAccessToken`,
                         {},
                         {withCredentials: true}
                     )
@@ -65,3 +69,5 @@ const api = axios.create({
             }
         }
     )
+
+    export default api;
