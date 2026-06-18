@@ -7,7 +7,7 @@ const roomSchema = mongoose.Schema({
     },
     roomName: {
         type: String,
-        require: true,
+        required: true,
         minLength: [3, 'Room name is too short. Make sure it have more than 2 words.'],
         maxlength: [30, "Room name containing more than 30 letters!"],
         match: [/^[A-Za-z0-9_\s]+$/, 'You can only use letters, numbers and underscore only']
@@ -15,7 +15,7 @@ const roomSchema = mongoose.Schema({
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        require: true
+        required: true
     },
     members: [{
         type: mongoose.Schema.Types.ObjectId,
