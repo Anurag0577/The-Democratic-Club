@@ -6,6 +6,7 @@ import NotFoundPage from './components/NotFound.jsx';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { Homepage } from './components/Homepage.jsx';
 import { AuthModel } from './components/AuthModel.jsx';
+import { Dashboard } from './pages/Dashboard.jsx';
 
 // ✅ Move this OUTSIDE the App component
 const client = new QueryClient();
@@ -38,6 +39,10 @@ function App() {
         {
           path: '/',
           element: <Homepage/>
+        },
+        {
+          path: '/dashboard',
+          element: <Dashboard/>
         },
         {
           path: '*',
