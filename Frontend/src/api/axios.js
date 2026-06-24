@@ -1,6 +1,6 @@
 import axios from 'axios'
 const SKIP_SOME_PATH = ['/login', '/signup'];
-const URL = 'http://localhost:3000/api';
+const URL = 'http://127.0.0.1:3000/api';
 
 const api = axios.create({
     baseURL: URL,
