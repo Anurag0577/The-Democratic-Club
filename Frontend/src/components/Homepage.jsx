@@ -382,7 +382,7 @@ export function Homepage() {
           </FadeSection>
           <FadeSection>
             <div className="hero-ctas">
-              <a href="#" className="btn-hero-primary">Get Started</a>
+              <a href="/dashboard" className="btn-hero-primary">Get Started</a>
               <a href="#the-problem" className="btn-hero-secondary">Why we built this</a>
             </div>
           </FadeSection>
