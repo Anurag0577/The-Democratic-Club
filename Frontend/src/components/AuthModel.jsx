@@ -37,7 +37,7 @@ export function AuthModel(){
         },
         onSuccess: (data) => {
         updateCurrentUserInfo(data.accessToken);
-        navigate('/');
+        closeModel();
         },
         onError: (error) => {
         console.log('Error during login', error)
@@ -61,7 +61,7 @@ export function AuthModel(){
       },
       onSuccess: (data) => {
         updateCurrentUserInfo(data.accessToken)
-        navigate('/')
+        closeModel();
       },
       onError: (error) => console.error('Error registering user:', error)
     })
@@ -114,7 +114,7 @@ export function AuthModel(){
                         </div>
                         </div>
                         <div className="form-button flex flex-col justify-center items-center mt-5">
-                            <button className="button form-submit text-black bg-white w-full py-1.5 rounded" onClick={() => loginUser.mutate({email, password})} >Login</button>
+                            <button className="button form-submit text-black bg-white w-full py-1.5 rounded cursor-pointer" onClick={() => loginUser.mutate({email, password})} >Login</button>
                             <p className="text-[12px] text-[#b6b6b6] mt-1" >Don't have account? 
                             <a onClick={openSignupModel} className="pl-1 italic underline cursor-pointer" >Create account.</a>
                             </p>
@@ -193,7 +193,7 @@ export function AuthModel(){
                             </div>
                             </div>
                             <div className="form-button flex flex-col justify-center items-center mt-10">
-                                <button className="button form-submit text-black bg-white w-full py-1.5 rounded" onClick={() => signupUser.mutate({firstname, lastname, email, password})} >Create</button>
+                                <button className="button form-submit text-black bg-white w-full py-1.5 rounded cursor-center" onClick={() => signupUser.mutate({firstname, lastname, email, password})} >Create</button>
                                 <p className="text-[12px] text-[#b6b6b6] mt-1" >Already have an account? 
                                 <a onClick={openLoginModel} className="pl-1 italic underline cursor-pointer">Login.</a>
                                 </p>

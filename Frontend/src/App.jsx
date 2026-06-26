@@ -7,6 +7,8 @@ import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { Homepage } from './components/Homepage.jsx';
 import { AuthModel } from './components/AuthModel.jsx';
 import { Dashboard } from './pages/Dashboard.jsx';
+import { Toaster } from 'sonner'
+
 
 // ✅ Move this OUTSIDE the App component
 const client = new QueryClient();
@@ -54,9 +56,21 @@ function App() {
 
   return (
     <>
+
       <QueryClientProvider client={client} >
         <RouterProvider router={router} />
       </QueryClientProvider>
+    <Toaster 
+      position="bottom-left" 
+      richColors
+      toastOptions={{
+        style: {
+          background: '#1f2937',
+          border: "1px solid #374151",
+          color: '#fff'
+        }
+      }}
+    /> 
     </>
   )
 }

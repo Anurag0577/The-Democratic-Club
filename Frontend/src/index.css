@@ -1,0 +1,16 @@
+h1, h2, h3, h4{
+    font-family: "Instrument Serif", serif;
+    font-weight: 400;
+}
+
+a,p,div{
+    font-family: "Google Sans Flex", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    font-variation-settings:
+        "slnt" 0,
+        "wdth" 100,
+        "GRAD" 0,
+        "ROND" 100;
+}
