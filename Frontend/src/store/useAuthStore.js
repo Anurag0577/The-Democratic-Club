@@ -12,14 +12,17 @@ const useAuthStore = create((set) => ({
             try {
                 const decodedToken = jwtDecode(token);
                 set({user: decodedToken, isAuthenticated: true})
+                localStorage.setItem('isAuthenticated', true)
             } catch (error) {
                 console.log('Token invalid: ', error)
                 localStorage.removeItem('accessToken')
                 set({user: null, isAuthenticated: false})
+                localStorage.setItem('isAuthenticated', false)
             }
         } else {
             console.log('Access token unavailable!')
             set({user: null, isAuthenticated: false})
+            localStorage.setItem('isAuthenticated', false)
         }
     },
 
@@ -86,6 +89,7 @@ const useAuthStore = create((set) => ({
         // extract the user information from the access token
         const decodedToken = jwtDecode(token);
         set({user: decodedToken, isAuthenticated: true})
+        localStorage.setItem('isAuthenticated', true)
 
     },
 
@@ -95,6 +99,7 @@ const useAuthStore = create((set) => ({
         localStorage.removeItem('spotify_access_token')
         localStorage.removeItem('spotify_refresh_token')
         localStorage.removeItem('code_verifier')
+        localStorage.setItem('isAuthenticated', false)
     }
 
 }))

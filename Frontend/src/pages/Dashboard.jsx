@@ -84,9 +84,12 @@ export function Dashboard() {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
   const logout = useAuthStore(state => state.logout)
   const openLoginModel = useAuthStore(state => state.openLoginModel)
-
+  const initialiseToken = useAuthStore(state => state.initialiseToken)
   const navigate = useNavigate();
   useEffect(() => {
+    initialiseToken();
+    const isAuthenticatedValue = localStorage.getItem('isAuthenticated') === 'true'
+    useAuthStore.setState({isAuthenticated: isAuthenticatedValue })
     checkSpotifyAuthentication(CLIENT_ID);
 
     const urlParams = new URLSearchParams(window.location.search)
@@ -99,7 +102,7 @@ export function Dashboard() {
         }
       })
     }
-  }, [checkSpotifyAuthentication])
+  }, [checkSpotifyAuthentication, isAuthenticated, initialiseToken])
 
   async function isUserHasPremium() {
     let accessToken = localStorage.getItem('spotify_access_token');
@@ -135,7 +138,7 @@ export function Dashboard() {
                 <img onClick={() => navigate('/')} src={logoImage} className="h-12 lg:h-18 cursor-pointer" />
               </div>
               <div className="flex justify-between items-center gap-5">
-                <p>{`Hi, ${storedUser.firstname}`}</p>
+                <p>{`Hi, ${storedUser?.firstname || 'User'}`}</p>
                 <button onClick={logout} className="py-2 px-4 rounded-xl bg-red-600 cursor-pointer">Logout</button>
               </div>
             </div>
@@ -165,12 +168,12 @@ export function Dashboard() {
                 <h2 className=" text-4xl md:text-5xl lg:text-6xl font-bold text-center">Host a Room</h2>
                 <p className='text-center'>Start a listening session and invite others to join</p>
               </div>
-              <div className="body-container flex-1 flex justify-center items-center gap-2">
+              <div className="body-container flex-1 flex flex-col justify-center items-center gap-2">
                 {spotify_access_token ? (
                   <>
-                    <p className="text-white font-semibold ">✓ Spotify connected!</p>
+                    <p className="text-white font-semibold bg-green-600 py-1 px-4 rounded-xl border">✓ Spotify connected!</p>
                     <button
-                    className="py-2 px-4 w-fit lg:w-70 bg-white text-black rounded-xl cursor-pointer font-bold flex justify-center items-center gap-2 hover:border-3 hover:border-black"
+                    className="py-2 px-4 w-fit lg:w-70 bg-white text-black border-3 border-transparent rounded-xl cursor-pointer font-bold flex justify-center items-center gap-2 hover:border-3 hover:border-black"
                   > Create Room</button>
                     <button
                       onClick={isUserHasPremium}
