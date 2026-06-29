@@ -2,7 +2,6 @@ import { useState } from "react"
 import { useMutation } from "@tanstack/react-query";
 import api from "../api/axios";
 import useAuthStore from "../store/useAuthStore";
-import { useNavigate } from "react-router";
 import { IoMdCloseCircleOutline } from "react-icons/io";
 
 export function AuthModel(){
@@ -19,7 +18,6 @@ export function AuthModel(){
     const [lastname, setLastname] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
-    const navigate = useNavigate();
 
     //  function for handling login
     const loginUser = useMutation({
@@ -76,7 +74,7 @@ export function AuthModel(){
                         <div className= " login-form-container  relative w-full max-w-92 h-100 max-h-98 p-8 rounded-[24px] bg-[rgb(13,13,13)] border border-white/10 text-white shadow-2xl transition-all transform scale-100 flex flex-col justify-between " onClick={(e) => e.stopPropagation()}>
                         <IoMdCloseCircleOutline onClick={closeModel} className="absolute right-5 top-5 text-xl cursor-pointer"  />
                         <div className="form-header flex flex-col justify-center items-center">
-                        <h3 className="form-heading text-2xl font-bold text-center tracking-tighter">Welcome back!</h3>
+                        <h3 className="form-heading text-2xl lg:text-3xl font-bold text-center tracking-tighter">Welcome back!</h3>
                         <p className="form-description text-center text-sm text-[#b6b6b6]">Enter your credentials to login to your account.</p>
                         </div>
                         <div className="flex flex-1 flex-col justify-center ">
@@ -127,7 +125,7 @@ export function AuthModel(){
                         <div className="signup-form-container  relative w-full max-w-92 h-125 max-h-140 p-8 rounded-[24px] bg-[rgb(13,13,13)] border border-white/10 text-white shadow-2xl transition-all transform scale-100 flex flex-col justify-between " onClick={(e) => e.stopPropagation()}>
                             <IoMdCloseCircleOutline onClick={closeModel} className="absolute right-5 top-5 text-xl cursor-pointer"  />
                             <div className="form-header flex flex-col justify-center items-center">
-                            <h3 className="form-heading text-2xl font-bold text-center tracking-tighter">Create new account</h3>
+                            <h3 className="form-heading text-2xl lg:text-3xl font-bold text-center tracking-tighter">Create new account</h3>
                             <p className="form-description text-center text-sm text-[#b6b6b6]">We just need a few details to get you started.</p>
                             </div>
                             <div className="flex flex-1 flex-col justify-center ">

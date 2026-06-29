@@ -85,6 +85,7 @@ export function Dashboard() {
   const logout = useAuthStore(state => state.logout)
   const openLoginModel = useAuthStore(state => state.openLoginModel)
   const initialiseToken = useAuthStore(state => state.initialiseToken)
+  const openRoomCreationModel = useAuthStore(state => state.openRoomCreationModel)
   const navigate = useNavigate();
   useEffect(() => {
     initialiseToken();
@@ -171,9 +172,10 @@ export function Dashboard() {
               <div className="body-container flex-1 flex flex-col justify-center items-center gap-2">
                 {spotify_access_token ? (
                   <>
-                    <p className="text-white font-semibold bg-green-600 py-1 px-4 rounded-xl border">✓ Spotify connected!</p>
+                    <p className="text-white text-[12px] bg-green-600 px-4 rounded-md border">✓ SPOTIFY CONNECTED!</p>
                     <button
                     className="py-2 px-4 w-fit lg:w-70 bg-white text-black border-3 border-transparent rounded-xl cursor-pointer font-bold flex justify-center items-center gap-2 hover:border-3 hover:border-black"
+                    onClick={openRoomCreationModel}
                   > Create Room</button>
                     <button
                       onClick={isUserHasPremium}

@@ -8,6 +8,8 @@ import { Homepage } from './components/Homepage.jsx';
 import { AuthModel } from './components/AuthModel.jsx';
 import { Dashboard } from './pages/Dashboard.jsx';
 import { Toaster } from 'sonner'
+import { RoomModel } from './components/RoomModel.jsx';
+import { Room } from './pages/Room.jsx';
 
 
 // ✅ Move this OUTSIDE the App component
@@ -18,6 +20,7 @@ function RootLayout(){
   return(
     <>
       <AuthModel/>
+      <RoomModel/>
       <Outlet/>
     </>
   )
@@ -45,6 +48,10 @@ function App() {
         {
           path: '/dashboard',
           element: <Dashboard/>
+        },
+        {
+          path: '/room/:roomCode',
+          element: <Room />
         },
         {
           path: '*',

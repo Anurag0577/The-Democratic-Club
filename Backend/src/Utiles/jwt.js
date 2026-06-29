@@ -9,7 +9,6 @@ function genAccessToken(user){
         email: user.email,
         tokenType: 'access'
     }
-
     return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {expiresIn: process.env.ACCESS_TOKEN_EXPIRY} )
 }
 
@@ -21,7 +20,6 @@ function genRefreshToken(user){
         email: user.email,
         tokenType: 'refresh'
     }
-
     return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, {
         expiresIn: process.env.REFRESH_TOKEN_EXPIRY
     })

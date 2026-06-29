@@ -79,6 +79,7 @@ const useAuthStore = create((set) => ({
 
     openLoginModel: () => set({activeModel : 'login'}),
     openSignupModel: () => set({activeModel: 'signup'}),
+    openRoomCreationModel: () => set({activeModel: 'roomCreation'}),
     closeModel: () => set({activeModel: null}),
 
 
