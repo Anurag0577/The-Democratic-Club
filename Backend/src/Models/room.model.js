@@ -1,5 +1,5 @@
-import mongoose from 'mongoose'
-import User from './user.model.js'
+import mongoose from 'mongoose';
+import {User} from './user.model.js';
 const roomSchema = mongoose.Schema({
     roomCode: {
         type: String,
@@ -10,7 +10,6 @@ const roomSchema = mongoose.Schema({
         required: true,
         minLength: [3, 'Room name is too short. Make sure it have more than 2 words.'],
         maxlength: [30, "Room name containing more than 30 letters!"],
-        match: [/^[A-Za-z0-9_\s]+$/, 'You can only use letters, numbers and underscore only']
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
@@ -64,18 +63,18 @@ roomSchema.pre('save', async function() {
     // function to generate random string
     const generateRandomString  = (length) => {
         const characters  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-        const result = ''
+        let result = ''
 
-        for(i=0; i<=length; i++){
-            const randomIndex = Math.floor(Math.random() * characters.length)
+        for(let i=0; i< length; i++){
+            let randomIndex = Math.floor(Math.random() * characters.length)
             result = result + characters.charAt(randomIndex)
         }
 
         return result;
     }
 
-    const isUnique = false;
-    const generatedRoomCode = '';
+    let isUnique = false;
+    let generatedRoomCode = '';
 
     while(!isUnique){
         generatedRoomCode = generateRandomString(6); // generate a 6 digit random string
@@ -93,7 +92,6 @@ roomSchema.pre('save', async function() {
 
 
 // add new members in the room
-
 roomSchema.methods.addNewMember = async function(userId){
     // check user is already in a room or not
     const isAlreadyInRoom = this.members.some(memberId => memberId.toString() === userId.toString());
@@ -105,12 +103,13 @@ roomSchema.methods.addNewMember = async function(userId){
         }
     }
 
-    this.member.push(userId)
+    this.members.push(userId)
     await this.save();
 
     return {success: true, message: `User ${userId} is now the member of the room.`}
 }
 
+// remove existing members
 roomSchema.methods.removeMember = async function(userId){
     // remove the user from the room
     this.members.pull(userId)

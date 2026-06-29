@@ -3,6 +3,7 @@ import express from 'express'; // import express lib // using ES Modules instead
 import cors from 'cors';
 import {connectDB} from './Database/db.js'
 import auth from './Routes/auth.route.js'
+import room from './Routes/room.route.js'
 import dashboard from './Routes/dashboard.route.js'
 import { ApiError } from './Utiles/ErrorHandler.js'
 import cookieParser from 'cookie-parser'
@@ -20,6 +21,7 @@ app.use(cors({
 
 app.use('/api/info', dashboard )
 app.use('/api/user', auth )
+app.use('/api/room', room)
 
 // catch all the requests that are comming on the endpoints that does not exist
 app.use((req, res) => {

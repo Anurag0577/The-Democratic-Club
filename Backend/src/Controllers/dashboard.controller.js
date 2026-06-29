@@ -8,3 +8,5 @@ const secretInfo = asyncHandler((req, res) => {
 })
 
 export {secretInfo}
+
+// 
