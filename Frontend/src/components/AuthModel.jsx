@@ -64,14 +64,14 @@ export function AuthModel(){
       onError: (error) => console.error('Error registering user:', error)
     })
 
-    if (!activeModel) return null;
+    if (activeModel !== 'login' && activeModel !== 'signup') return null;
 
-        return (
-            <>
-                <div className=" fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-opacity duration-300" onClick={closeModel} >
-                {
-                    (activeModel === 'login') ? (
-                        <div className= " login-form-container  relative w-full max-w-92 h-100 max-h-98 p-8 rounded-[24px] bg-[rgb(13,13,13)] border border-white/10 text-white shadow-2xl transition-all transform scale-100 flex flex-col justify-between " onClick={(e) => e.stopPropagation()}>
+    return (
+        <>
+            <div className=" fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-opacity duration-300" onClick={closeModel} >
+            {
+                (activeModel === 'login') ? (
+                    <div className= " login-form-container  relative w-full max-w-92 h-100 max-h-98 p-8 rounded-3xl bg-[rgb(13,13,13)] border border-white/10 text-white shadow-2xl transition-all transform scale-100 flex flex-col justify-between " onClick={(e) => e.stopPropagation()}>
                         <IoMdCloseCircleOutline onClick={closeModel} className="absolute right-5 top-5 text-xl cursor-pointer"  />
                         <div className="form-header flex flex-col justify-center items-center">
                         <h3 className="form-heading text-2xl lg:text-3xl font-bold text-center tracking-tighter">Welcome back!</h3>
@@ -200,8 +200,6 @@ export function AuthModel(){
                     </div>
                     )
                 }
-                    
-
                 </div>
             </>
         )
