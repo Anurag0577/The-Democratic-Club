@@ -70,8 +70,7 @@ export function RoomModel(){
                             >Create</button>
                         </div>
                     </div> 
-            )}
-                   
+            )}   
             </div>
         </>
     )

@@ -9,7 +9,7 @@ import { AuthModel } from './components/AuthModel.jsx';
 import { Dashboard } from './pages/Dashboard.jsx';
 import { Toaster } from 'sonner'
 import { RoomModel } from './components/RoomModel.jsx';
-import { Room } from './pages/Room.jsx';
+import RoomPage from './pages/RoomPage.jsx';
 
 
 // ✅ Move this OUTSIDE the App component
@@ -51,7 +51,7 @@ function App() {
         },
         {
           path: '/room/:roomCode',
-          element: <Room />
+          element: <RoomPage />
         },
         {
           path: '*',
