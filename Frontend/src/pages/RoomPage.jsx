@@ -1,25 +1,17 @@
 import { useState } from 'react';
+import { useParams } from 'react-router';
 import Header from '../components/Header.jsx';
 import RoomDetailsCard from '../components/RoomDetailsCard.jsx';
 import PlayerSection from '../components/PlayerSection.jsx';
 import QueueSection from '../components/QueueSection.jsx';
 import { useAccentColor } from '../hooks/useAccentColor.js';
+import { useQuery } from '@tanstack/react-query';
+import api from '../api/axios.js';
 
 export default function RoomPage() {
   const [userName] = useState('Pushpa');
   const [isPlaying, setIsPlaying] = useState(true);
-
-  // Room Details State
-  const [roomDetails] = useState({
-    roomName: `Anurag's Room`,
-    createdDate: 'May 12, 2024',
-    hostName: 'Armaan Singh',
-    totalMembers: 24,
-    nowPlayingTime: '0:21 / 3:10',
-    roomCode: '1234',
-    shareLink: 'thedemocraticclub.com/room/1234',
-  });
-
+  const { roomCode } = useParams();
   // Current Song State with gradient accent
   const [currentSong] = useState({
     title: 'Winning Speech',
@@ -84,6 +76,45 @@ export default function RoomPage() {
     },
   ]);
 
+  // function to fetch room details
+  const fetchingRoomDetails = async () => {
+    const response = await api.post('/room/room-details', {
+      roomCode,
+    }, {
+      withCredentials: true,
+    });
+    console.log(response.data.data)
+    return response?.data?.data;
+  };
+
+  // fetching room details
+  const { data: room, isLoading, isError } = useQuery({
+    queryKey: ['roomDetails', roomCode],
+    queryFn: fetchingRoomDetails,
+    enabled: Boolean(roomCode),
+  });
+
+  if (!roomCode) {
+    return <div>We did not find any room code from the URL.</div>;
+  }
+
+  if (isLoading) return <div>Fetching room information...</div>;
+  if (isError) return <div>We are getting error</div>;
+
+
+  // Room Details State
+  // const [roomDetailsDemo] = useState({
+  //   roomName: `Anurag's Room`,
+  //   createdDate: 'May 12, 2024',
+  //   hostName: 'Armaan Singh',
+  //   totalMembers: 24,
+  //   nowPlayingTime: '0:21 / 3:10',
+  //   roomCode: '1234',
+  //   shareLink: 'thedemocraticclub.com/room/1234',
+  // });
+
+  
+
   // Handlers
   const handleLogout = () => console.log('[v0] Logout clicked');
   const handleLeaveRoom = () => console.log('[v0] Leave room clicked');
@@ -112,7 +143,7 @@ export default function RoomPage() {
         }}>
       {/* Universal Header */}
       <div className="flex-shrink-0">
-        <Header userName={userName} onLogout={handleLogout} roomName={roomDetails.roomName} />
+        <Header userName={userName} onLogout={handleLogout} roomName={room?.roomName || 'Room'} />
       </div>
 
       {/* Main Responsive Container */}
@@ -123,7 +154,7 @@ export default function RoomPage() {
           {/* Room Details Column */}
           <div className="w-[350px] overflow-hidden">
             <RoomDetailsCard
-              roomDetails={roomDetails}
+              roomDetails={room}
               onLeaveRoom={handleLeaveRoom}
               onCopyLink={handleCopyLink}
             />
@@ -183,7 +214,7 @@ export default function RoomPage() {
 
           <div className="w-full flex-shrink-0">
             <RoomDetailsCard
-              roomDetails={roomDetails}
+              roomDetails={room}
               onLeaveRoom={handleLeaveRoom}
               onCopyLink={handleCopyLink}
               isMobile

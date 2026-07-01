@@ -28,7 +28,7 @@ export default function RoomDetailsCard({ roomDetails, onLeaveRoom, onCopyLink, 
             <div className="">
               <p className={`text-white/50 ${isMobile ? 'text-xs' : 'text-sm'}`}>Room host</p>
               <p className={`text-white font-medium ${isMobile ? 'text-xs' : 'text-base'}`}>
-                {roomDetails.hostName}
+                {roomDetails.createdBy.firstname}
               </p>
             </div>
           </div>
@@ -56,27 +56,18 @@ export default function RoomDetailsCard({ roomDetails, onLeaveRoom, onCopyLink, 
       </div>
 
 
-      <div className="border flex-1 border-white/10 rounded-2xl p-3 md:p-4 bg-black/40 backdrop-blur flex flex-col justify-between items-center">
+      <div className="border flex-1 border-white/10 rounded-2xl p-3 md:p-4 bg-black/40 backdrop-blur flex flex-col justify-center gap-8 items-center">
         <div className={`text-center `}>
           <h1 className={`text-white mb-2 ${isMobile ? 'text-base' : 'text-2xl'}`}>Room Code:</h1>
           <p className={`text-white font-black ${isMobile ? 'text-xl' : 'text-2xl'}`}>{roomDetails.roomCode}</p>
         </div>
-
-        <p className={`text-white/70 text-center  ${isMobile ? 'text-xs' : 'text-sm'}`}>
-          Share this link with <br /> your friends
-        </p>
-
-        <p className={`text-white font-semibold text-center ${isMobile ? 'text-xs' : 'text-xs'}`}>
-          {roomDetails.shareLink}
-        </p>
-
 
         <button
           onClick={onCopyLink}
           className={`w-full bg-transparent border border-white hover:bg-white text-white hover:text-black flex justify-center items-center gap-3 font-bold rounded-2xl transition-colors duration-200 cursor-pointer ${isMobile ? 'py-1 text-sm' : 'py-1'}`}
         >
           <FaCopy className={isMobile ? 'text-sm' : 'text-lg'} />
-          Copy Link
+          Copy
         </button>
       </div>
     </div>

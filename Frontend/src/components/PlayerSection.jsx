@@ -29,7 +29,7 @@ export default function PlayerSection({
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          backgroundImage: `linear-gradient(180deg, ${accentColor} 0%, rgba(0, 0, 0, 0.9) 50%, rgba(0, 0, 0, 1) 100%)`,
+          backgroundImage: `linear-gradient(180deg, ${accentColor} 0%, rgba(0, 0, 0, 0.6) 50%, rgba(0, 0, 0, 1) 100%)`,
         }}
       ></div>
 

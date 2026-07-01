@@ -3,7 +3,7 @@ import { ApiError } from "../Utiles/ErrorHandler.js";
 import { Room } from "../Models/room.model.js";
 import { ApiResponse } from "../Utiles/ApiResponse.js";
 
-// create room => user with spotify premium
+// CREATE ROOM -------------------------------------------
 const createRoom = asyncHandler( async(req, res) => {
      const roomName = req.body.roomName;
      const userId =  req.user.id;
@@ -25,7 +25,7 @@ const createRoom = asyncHandler( async(req, res) => {
     res.status(200).json(new ApiResponse(200, `New room named ${roomName} successfully created!`, newRoom))
 })
 
-// join room => any user that is logged in
+// JOIN ROOM ------------------------------------------
 const joinRoom = asyncHandler(async( req, res ) => {
     const roomCode = req.body.roomCode;
     if(!roomCode) return res.status(400).json(new ApiError(400, 'Server did not get any room code.'))
@@ -57,7 +57,7 @@ const joinRoom = asyncHandler(async( req, res ) => {
     return res.status(200).json(new ApiResponse(200, 'User successfully joined the room.'))
 }) 
 
-// leave room => Admin can not leave the room, he can only delete it (do not show leave button for him), only members can leave room
+// LEAVE ROOM ---------------------------------------------------
 const leaveRoom = asyncHandler(async (req, res) => {
     const {roomCode} = req.body;
     const userId  = req.user.id;
@@ -82,7 +82,7 @@ const leaveRoom = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, 'User removed successfully from the room.'))
 })
 
-// delete room => Only admin see this button, he can delete room
+// DELETE ROOM --------------------------------------------
 const deleteRoom = asyncHandler(async(req, res) => {
     const {roomCode} = req.body;
     const userId  = req.user.id;
@@ -100,7 +100,7 @@ const deleteRoom = asyncHandler(async(req, res) => {
     return res.status(200).json(new ApiResponse(200, 'Room successfully deleted!', {deletedRoomCode: roomCode}))
 })
 
-// get room details => any one can access this api
+// GET ROOM INFORMATION -----------------------------------------------
 const getRoomDetails = asyncHandler(async(req, res) => {
 
     // get room code from the body
@@ -108,8 +108,10 @@ const getRoomDetails = asyncHandler(async(req, res) => {
     if(!roomCode) return res.status(400).json(new ApiError(400, 'Room code missing!'))
     
     // fetch the room information
-    const roomInfo = await Room.findOne({roomCode: roomCode}).lean();
-    res.status(200).json(new ApiResponse(200, 'Room information successfully fetched!', {roomInfo: roomInfo}))
+    const roomInfo = await Room.findOne({ roomCode })
+                               .populate('createdBy', 'firstname') 
+                               .lean();
+    res.status(200).json(new ApiResponse(200, 'Room information successfully fetched!', roomInfo))
 })
 
 
