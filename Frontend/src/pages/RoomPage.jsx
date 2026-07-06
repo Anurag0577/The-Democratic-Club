@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router';
 import Header from '../components/Header.jsx';
 import RoomDetailsCard from '../components/RoomDetailsCard.jsx';
@@ -7,11 +7,26 @@ import QueueSection from '../components/QueueSection.jsx';
 import { useAccentColor } from '../hooks/useAccentColor.js';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios.js';
+import useAuthStore from '../store/useAuthStore.js';
+
+const CLIENT_ID = 'e68b2e0ec25345a5a0cc536b33506b84';
 
 export default function RoomPage() {
   const [userName] = useState('Pushpa');
   const [isPlaying, setIsPlaying] = useState(true);
   const { roomCode } = useParams();
+
+    const checkSpotifyAuthentication = useAuthStore(state => state.checkSpotifyAuthentication)
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated)
+  const initialiseToken = useAuthStore(state => state.initialiseToken)
+  
+    useEffect(() => {
+    initialiseToken();
+    const isAuthenticatedValue = localStorage.getItem('isAuthenticated') === 'true'
+    useAuthStore.setState({isAuthenticated: isAuthenticatedValue })
+    checkSpotifyAuthentication(CLIENT_ID);
+
+  }, [checkSpotifyAuthentication, isAuthenticated, initialiseToken])
   // Current Song State with gradient accent
   const [currentSong] = useState({
     title: 'Winning Speech',
@@ -20,7 +35,7 @@ export default function RoomPage() {
     genre: 'Punjabi',
     year: '2021',
     imageUrl:
-      'https://i.scdn.co/image/ab67616d0000b2736c8802411130056f447257a6',
+      'https://i.scdn.co/image/ab67616d0000b273fe841eef499c6933add94d57',
     requestedBy: 'Armaan Singh',
     requestedByAvatar:
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop',
@@ -133,6 +148,10 @@ export default function RoomPage() {
     newQueue[index].likes += newQueue[index].isLiked ? 1 : -1;
     setQueue(newQueue);
   };
+
+
+
+
 
   return (
     <div

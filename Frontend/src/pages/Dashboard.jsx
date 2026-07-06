@@ -72,10 +72,6 @@ const getToken = async (code) => {
   return null
 }
 
-
-
-
-
 export function Dashboard() {
   const checkSpotifyAuthentication = useAuthStore(state => state.checkSpotifyAuthentication)
   const spotify_access_token = useAuthStore(state => state.spotify_access_token)

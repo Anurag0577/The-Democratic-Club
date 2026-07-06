@@ -19,10 +19,12 @@ export function AuthModel(){
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
 
+    
     //  function for handling login
     const loginUser = useMutation({
         mutationKey: ['loginUser'],
         mutationFn: async({email, password}) => {
+
         const response = await api.post('/user/login', {
             email,
             password
@@ -31,7 +33,7 @@ export function AuthModel(){
             withCredentials: true
         }
         )
-        return response.data.data;
+        return response?.data?.data;
         },
         onSuccess: (data) => {
         updateCurrentUserInfo(data.accessToken);
@@ -42,6 +44,7 @@ export function AuthModel(){
         }
     })
     
+
     //  function for handling signup
     const signupUser = useMutation({
       mutationKey: ['userSignup'],

@@ -1,7 +1,15 @@
 import { FaUser, FaUsers, FaCopy } from 'react-icons/fa';
 import { FaHouse } from "react-icons/fa6";
+import useAuthStore from '../store/useAuthStore.js'
 
 export default function RoomDetailsCard({ roomDetails, onLeaveRoom, onCopyLink, isMobile }) {
+
+  const user = useAuthStore(state => state.user)
+
+  console.log('This is current user: ', user)
+
+  console.log('This is user details: ', roomDetails)
+
   return (
     <div className="flex flex-col h-full gap-3">
 
@@ -11,7 +19,7 @@ export default function RoomDetailsCard({ roomDetails, onLeaveRoom, onCopyLink, 
         </h3>
 
   
-        <div className={`${isMobile ? 'space-y-1' : 'space-y-2'} mb-1 md:mb-2`}>
+        <div className={`${isMobile ? 'space-y-1' : 'space-y-2'} mb-1 md:mb-2 `}>
 
           <div className="flex items-center justify-center gap-3 md:gap-4">
             <FaHouse className={`text-white/50 mt-1 flex-shrink-0  ${isMobile ? 'text-base' : 'text-2xl'}`} />
@@ -35,24 +43,34 @@ export default function RoomDetailsCard({ roomDetails, onLeaveRoom, onCopyLink, 
 
 
           <div className="flex items-center justify-center gap-3 md:gap-4">
-            <FaUsers className={`text-white/50 mt-1 flex-shrink-0  ${isMobile ? 'text-base' : 'text-3xl'}`} />
+            <FaUsers className={`text-white/50 mt-1 flex-shrink-0  ${isMobile ? 'text-base' : 'text-2xl'}`} />
             <div className="">
               <p className={`text-white/50 ${isMobile ? 'text-xs' : 'text-sm'}`}>Total members</p>
               <p className={`text-white font-medium ${isMobile ? 'text-xs' : 'text-base'}`}>
-                {roomDetails.totalMembers}
+                {roomDetails.members.length}   
               </p>
             </div>
           </div>
 
         </div>
 
-
-        <button
-          onClick={onLeaveRoom}
-          className={`w-full bg-transparent border border-white hover:bg-white text-white hover:text-black font-bold rounded-2xl transition-colors duration-200 cursor-pointer ${isMobile ? 'py-1 text-sm' : 'py-1'}`}
-        >
-          Leave Room
-        </button>
+        {
+          (user.id === roomDetails.createdBy.id) ? (
+            <button
+            onClick={onLeaveRoom}
+            className={`w-full bg-transparent border border-white hover:bg-white text-white hover:text-black font-bold rounded-2xl transition-colors duration-200 cursor-pointer ${isMobile ? 'py-1 text-sm' : 'py-1'}`}
+          >
+            Leave Room
+          </button>
+          ) : (
+            <button
+              onClick={onLeaveRoom}
+              className={`w-full bg-transparent border border-white hover:bg-white text-white hover:text-black font-bold rounded-2xl transition-colors duration-200 cursor-pointer ${isMobile ? 'py-1 text-sm' : 'py-1'}`}
+            >
+              Delete Room
+            </button>
+          )
+        }
       </div>
 
 

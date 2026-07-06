@@ -11,6 +11,7 @@ const useAuthStore = create((set) => ({
         if(token){
             try {
                 const decodedToken = jwtDecode(token);
+                console.log("This is the value of decodedToken: ",decodedToken)
                 set({user: decodedToken, isAuthenticated: true})
                 localStorage.setItem('isAuthenticated', true)
             } catch (error) {
