@@ -7,6 +7,8 @@ import room from './Routes/room.route.js'
 import dashboard from './Routes/dashboard.route.js'
 import { ApiError } from './Utiles/ErrorHandler.js'
 import cookieParser from 'cookie-parser'
+import http from 'http';
+import { initialiseWebSocketServer } from './WebSocketServer/webSocketServer.js';
 
 const app = express() // create express instance
 const PORT = process.env.PORT || 3000;
@@ -54,7 +56,13 @@ app.use((err, req, res, next) => {
 // First the DB connect then only the server start running
 connectDB()
     .then(() => {
-        const server = app.listen(PORT, () => {
+
+        const httpServer = http.createServer(app)
+
+        // passing http server to websocket so they can run on the same port
+        initialiseWebSocketServer(httpServer);
+
+        const server = httpServer.listen(PORT, () => {
             console.log(`Server started! Running on port ${PORT}.`)
         })
 
