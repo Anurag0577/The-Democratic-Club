@@ -1,0 +1,27 @@
+const messageType = {
+
+    // CLIENT => SERVER
+
+    JOIN_ROOM: 'JOIN_ROOM',
+    LEAVE_ROOM: 'LEAVE_ROOM',
+    ADD_SONG: 'ADD_SONG',
+    REMOVE_SONG: 'REMOVE_SONG',
+    VOTE : 'VOTE',
+    SKIP_SONG : 'SKIP_SONG',
+    PLAY: 'PLAY',
+    PAUSE : 'PAUSE',
+    SONG_ENDED: 'SONG_ENDED',
+
+
+    
+    // SERVER => CLIENT
+
+    QUEUE_UPDATE : 'QUEUE_UPDATE',
+    NOW_PLAYING : 'NOW_PLAYING',
+    PLAYBACK_STATUS : 'PLAYBACK_STATUS',
+    MEMBER_UPDATED : 'MEMBER_UPDATED',
+    CURRENT_ROOM_STATE : 'CURRENT_ROOM_STATE',
+    ERROR : 'ERROR'
+}
+
+export {messageType};

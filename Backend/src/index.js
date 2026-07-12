@@ -8,7 +8,9 @@ import dashboard from './Routes/dashboard.route.js'
 import { ApiError } from './Utiles/ErrorHandler.js'
 import cookieParser from 'cookie-parser'
 import http from 'http';
-import { initialiseWebSocketServer } from './WebSocketServer/webSocketServer.js';
+import { initialiseWebSocketServer } from './WebSocket/webSocketServer.js';
+import { RedisClient } from 'redis';
+import { redisClient } from './Database/redisClient.js';
 
 const app = express() // create express instance
 const PORT = process.env.PORT || 3000;
@@ -55,7 +57,7 @@ app.use((err, req, res, next) => {
 
 // First the DB connect then only the server start running
 connectDB()
-    .then(() => {
+    .then(async () => {
 
         const httpServer = http.createServer(app)
 
@@ -65,6 +67,12 @@ connectDB()
         const server = httpServer.listen(PORT, () => {
             console.log(`Server started! Running on port ${PORT}.`)
         })
+
+        // connect to redis if any other redis server is not active
+        if(!redisClient.isOpen){
+            await redisClient.connect();
+            console.log('This is in the index.js file, Redis client connected!')
+        }
 
         // check whether the same port is used by any other application
         server.on('error', (error) => {

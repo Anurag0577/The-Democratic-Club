@@ -35,7 +35,7 @@ export default function RoomPage() {
     genre: 'Punjabi',
     year: '2021',
     imageUrl:
-      'https://i.scdn.co/image/ab67616d0000b273fe841eef499c6933add94d57',
+      "https://i.scdn.co/image/ab67616d0000b2736c8802411130056f447257a6",
     requestedBy: 'Armaan Singh',
     requestedByAvatar:
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop',

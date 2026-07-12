@@ -14,11 +14,11 @@ export function initialiseWebSocketServer(server){
 
             const textMessage = JSON.stringify(data)
 
-            if(socket.readyState === WebSocket.OPEN){
-                wss.clients.forEach(client => {
-                    client.send(textMessage)
-                })
-            }
+            // if(socket.readyState === WebSocket.OPEN){
+            //     wss.clients.forEach(client => {
+            //         client.send(textMessage)
+            //     })
+            // }
         })
     })
 }
