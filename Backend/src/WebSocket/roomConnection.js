@@ -1,3 +1,4 @@
+import WebSocket from 'ws';
 
 const roomConnections = new Map();
 
@@ -16,13 +17,16 @@ function joinRoom(roomId, socket){
 
 // LEAVE ROOM
 function leaveRoom(socket){
-    const roomId = socket.roomId; // save roomId in socket in during join room
-    if(roomId || !roomConnections.has(roomId)){
+    const roomId = socket.roomId; // saved on socket during join
+    if(!roomId || !roomConnections.has(roomId)){
         return;
     }
-    roomConnections.get(roomId).delete(socket) // remove the socket
-    // now if the size === 0 then delete the room
-    if(roomConnections.size === 0){
+    
+    const clients = roomConnections.get(roomId);
+    clients.delete(socket); // remove the socket
+    
+    // if no clients left in this room, delete the room entry
+    if(clients.size === 0){
         roomConnections.delete(roomId);
     }
 }
@@ -44,8 +48,12 @@ function broadCastToRoom(roomId, payload){
     console.log('This is all the clients in the room: ', clients)
 
     clients.forEach(client => {
-        if(client.readyState === client.OPEN){
-            client.send(message)
+        if(client.readyState === WebSocket.OPEN){
+            try {
+                client.send(message);
+            } catch(err) {
+                console.error('Failed to send message to client:', err);
+            }
         }
     });
 }

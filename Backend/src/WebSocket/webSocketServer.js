@@ -1,4 +1,5 @@
 import WebSocket, {WebSocketServer} from 'ws';
+import { messageHandler } from './messageHandler.js';
 
 export function initialiseWebSocketServer(server){
     const wss = new WebSocketServer({server})
@@ -10,15 +11,21 @@ export function initialiseWebSocketServer(server){
 
         console.log('WebSocket server connected successfully!')
 
-        socket.on('message', function message(data){
-
-            const textMessage = JSON.stringify(data)
-
-            // if(socket.readyState === WebSocket.OPEN){
-            //     wss.clients.forEach(client => {
-            //         client.send(textMessage)
-            //     })
-            // }
+        socket.on('message', async function message(data){
+            try {
+                const textMessage = JSON.parse(data);
+                await messageHandler(socket, textMessage);
+            } catch(err) {
+                console.error('Failed to parse or handle WS message:', err);
+                try {
+                    socket.send(JSON.stringify({
+                        type: 'ERROR',
+                        payload: 'Invalid message format'
+                    }));
+                } catch(e) {
+                    // ignore send errors
+                }
+            }
         })
     })
 }

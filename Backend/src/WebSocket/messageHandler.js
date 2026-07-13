@@ -1,9 +1,75 @@
+import { Room } from '../Models/room.model.js'
 import {messageType} from '../WebSocket/messageType.js'
+import { joinRoom, leaveRoom, broadCastToRoom } from './roomConnection.js'
+import { getQueue } from './roomState.js'
 
-async function messageHandler(ws, data){
-    switch(data.type){
-        case messageType.JOIN_ROOM : {
+async function messageHandler(socket, data){
+    try {
+        switch(data.type){
+            case messageType.JOIN_ROOM : {
+                const roomCode = data.roomId;
+                
+                // Validate roomCode exists
+                if(!roomCode) {
+                    return socket.send(JSON.stringify({
+                        type: messageType.ERROR,
+                        payload: 'Missing roomCode'
+                    }));
+                }
 
+                // Add socket to in-memory room map
+                joinRoom(roomCode, socket);
+
+                /*
+                1. fetch the list of members from the DB
+                2. try to fetch queue current state from redis 
+                3. if not found just fetch it from the DB
+                4. Now sync current ROOM_STATE for the current user
+                5. Broadcast 'MEMBER_UPDATE' to every other users in the room
+                */
+
+                // Fetch room from DB using roomCode (not _id)
+                const room = await Room.findOne({ roomCode });
+                
+                if(!room) {
+                    return socket.send(JSON.stringify({
+                        type: messageType.ERROR,
+                        payload: 'Room not found'
+                    }));
+                }
+
+                const memberCount = room.members?.length || 0;
+
+                // Fetch the latest queue state (await the async call)
+                const queue = await getQueue(roomCode);
+
+                // Send the current room state to current user only
+                socket.send(JSON.stringify({
+                    type: messageType.CURRENT_ROOM_STATE,
+                    queue,
+                    memberCount,
+                    room
+                }));
+
+                // Tell other users someone joined the room
+                broadCastToRoom(roomCode, {
+                    type: messageType.MEMBER_UPDATED,
+                    count: memberCount,
+                    memberList: room.members
+                });
+
+                break;
+            }
+        }
+    } catch(err) {
+        console.error('messageHandler error:', err);
+        try {
+            socket.send(JSON.stringify({
+                type: messageType.ERROR,
+                payload: 'Server error'
+            }));
+        } catch(e) {
+            // ignore send errors
         }
     }
 }
