@@ -3,40 +3,40 @@ import WebSocket from 'ws';
 const roomConnections = new Map();
 
 // JOIN ROOM 
-function joinRoom(roomId, socket){
+function joinRoom(roomCode, socket){
     // check room exist or not, if not create new
-    if(!roomConnections.has(roomId)){
-        roomConnections.set(roomId, new Set()) // create an empty room
+    if(!roomConnections.has(roomCode)){
+        roomConnections.set(roomCode, new Set()) // create an empty room
     }
 
-    roomConnections.get(roomId).add(socket);
-    socket.roomId = roomId; 
+    roomConnections.get(roomCode).add(socket);
+    socket.roomCode = roomCode; 
 }
 
 
 
 // LEAVE ROOM
 function leaveRoom(socket){
-    const roomId = socket.roomId; // saved on socket during join
-    if(!roomId || !roomConnections.has(roomId)){
+    const roomCode = socket.roomCode; // saved on socket during join
+    if(!roomCode || !roomConnections.has(roomCode)){
         return;
     }
     
-    const clients = roomConnections.get(roomId);
+    const clients = roomConnections.get(roomCode);
     clients.delete(socket); // remove the socket
     
     // if no clients left in this room, delete the room entry
     if(clients.size === 0){
-        roomConnections.delete(roomId);
+        roomConnections.delete(roomCode);
     }
 }
 
 
 
-// BROADCAST TO EACH CIENt
-function broadCastToRoom(roomId, payload){
-    // check for the roomId in roomConnections
-    if(!roomConnections.has(roomId)){
+// BROADCAST TO EACH CLIENT
+function broadCastToRoom(roomCode, payload){
+    // check for the roomCode in roomConnections
+    if(!roomConnections.has(roomCode)){
         return
     }
 
@@ -44,7 +44,7 @@ function broadCastToRoom(roomId, payload){
 
     // convert this payload into string
     const message =  JSON.stringify(payload)
-    const clients = roomConnections.get(roomId);
+    const clients = roomConnections.get(roomCode);
     console.log('This is all the clients in the room: ', clients)
 
     clients.forEach(client => {

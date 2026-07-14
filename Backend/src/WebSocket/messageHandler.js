@@ -7,7 +7,7 @@ async function messageHandler(socket, data){
     try {
         switch(data.type){
             case messageType.JOIN_ROOM : {
-                const roomCode = data.roomId;
+                const roomCode = data.roomCode;
                 
                 // Validate roomCode exists
                 if(!roomCode) {
@@ -41,7 +41,7 @@ async function messageHandler(socket, data){
                 const memberCount = room.members?.length || 0;
 
                 // Fetch the latest queue state (await the async call)
-                const queue = await getQueue(roomCode);
+                const queue = await getQueue(room._id);
 
                 // Send the current room state to current user only
                 socket.send(JSON.stringify({
@@ -60,6 +60,41 @@ async function messageHandler(socket, data){
 
                 break;
             }
+
+            // LEAVE ROOM
+            case messageType.LEAVE_ROOM : {
+                // call leave room function (it will remove the socket from the roomConnections)
+                leaveRoom(socket);
+                const roomCode = socket.roomCode;
+                if(!roomCode){
+                    return socket.send(JSON.stringify({
+                            type: messageType.ERROR,
+                            payload: 'Room not found'
+                        }));
+                }
+                // fetch the latest members list from the DB
+                const room = await Room.findOne({roomCode});
+                const memberCount = room.members?.length || 0;
+
+                broadCastToRoom(roomCode, {
+                    type: messageType.MEMBER_UPDATED,
+                    count: memberCount,
+                    memberList: room.members
+                });
+
+                break;
+            }
+
+            // ADD SONG
+            case messageType.ADD_SONG : {
+                const roomObjectId = data.roomId;
+                // get the latest queue form the redis
+                const currentQueue = await getQueue(roomObjectId);
+                // add the song in it
+                // set the queue
+                // broadcast the updated queue to other member 
+            }
+
         }
     } catch(err) {
         console.error('messageHandler error:', err);

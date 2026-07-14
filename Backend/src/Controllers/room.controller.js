@@ -1,6 +1,7 @@
 import { asyncHandler } from "../Utiles/asyncHandler.js";
 import { ApiError } from "../Utiles/ErrorHandler.js";
 import { Room } from "../Models/room.model.js";
+import { Queue } from "../Models/queue.model.js";
 import { ApiResponse } from "../Utiles/ApiResponse.js";
 
 // CREATE ROOM -------------------------------------------
@@ -22,6 +23,13 @@ const createRoom = asyncHandler( async(req, res) => {
         roomName,
         createdBy: userId
     })
+
+    // now create a new queue instanse that is associated with this room
+    const newQueue = await Queue.create({
+        room: newRoom._id,
+        tracks: []
+    })
+
     res.status(200).json(new ApiResponse(200, `New room named ${roomName} successfully created!`, newRoom))
 })
 
@@ -86,6 +94,7 @@ const leaveRoom = asyncHandler(async (req, res) => {
 const deleteRoom = asyncHandler(async(req, res) => {
     const {roomCode} = req.body;
     const userId  = req.user.id;
+    const roomId =  req.user.id;
 
     // check room esixt or not
     const foundRoom = await Room.findOne({roomCode: roomCode})
@@ -95,6 +104,7 @@ const deleteRoom = asyncHandler(async(req, res) => {
     if(!isUserHost) return res.status(403).json(new ApiError(403,'Current user is not the host of the room, so he can not delete this room.'))
 
     //  Delete this room 
+    await Queue.deleteOne({room: roomId})
     await Room.deleteOne({ roomCode: roomCode });
 
     return res.status(200).json(new ApiResponse(200, 'Room successfully deleted!', {deletedRoomCode: roomCode}))
