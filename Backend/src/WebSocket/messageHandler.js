@@ -1,13 +1,11 @@
 import { Room } from '../Models/room.model.js'
 import {messageType} from '../WebSocket/messageType.js'
 import { joinRoom, leaveRoom, broadCastToRoom } from './roomConnection.js'
-import { getQueue, setQueue } from './roomState.js'
+import { getQueue } from './roomState.js'
 
 async function messageHandler(socket, data){
     try {
         switch(data.type){
-
-            // JOIN ROOM
             case messageType.JOIN_ROOM : {
                 const roomCode = data.roomCode;
                 
@@ -90,15 +88,11 @@ async function messageHandler(socket, data){
             // ADD SONG
             case messageType.ADD_SONG : {
                 const roomObjectId = data.roomId;
-                const currentQueue = await getQueue(roomObjectId); // get the latest queue form the redis
+                // get the latest queue form the redis
+                const currentQueue = await getQueue(roomObjectId);
                 // add the song in it
-                const updatedQueue = await setQueue(roomObjectId, currentQueue.push(data.track)) // set the queue
-                
-                // broadcast the updated queue to other members
-                broadCastToRoom(roomCode, {
-                    type: messageType.QUEUE_UPDATE,
-                    updatedQueue
-                } )
+                // set the queue
+                // broadcast the updated queue to other member 
             }
 
         }

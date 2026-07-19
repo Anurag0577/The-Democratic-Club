@@ -1,36 +1,68 @@
-/*
-Write two functions..
-1) getQueue - return the latest queue in sorted order
-2) setQueue - update the queue and return the updated queue
-*/
+// roomState.js
+import {redisClient} from '../Database/redisClient.js'
+import { Queue } from '../Models/queue.model.js'
 
-import { redisClient } from "../Database/redisClient.js";
-import { Queue } from "../Models/queue.model.js";
-import { Room } from "../Models/room.model";
+const roomKey = (roomObjectId) => `room:${roomObjectId}:queue`;
 
-const roomKey = (roomCode) => `room:${roomCode}:queue`
+function normalizeQueueData(queueData) {
+  if (Array.isArray(queueData)) {
+    return queueData;
+  }
 
-async function getQueue(roomCode){
-// first try to fetch from the redis
-// if not in the redis , fetch from DB
-// Once get the queue from the db , please update/save the value in the redis
+  if (typeof queueData === 'string') {
+    try {
+      const parsed = JSON.parse(queueData);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
 
-const key = roomKey(roomCode)
-
-let foundQueue = await redisClient.hVals(key)
-if(Object.keys(foundQueue).length === 0){
-  const fetchedQueue = await Queue.findOne({room: roomCode})
-  if(!fetchedQueue) return // here we do something later
-
-  foundQueue = fetchedQueue.tracks // this is basically array
+  return [];
 }
 
-// if the length is not zero then we have to convert the hset in to a normal js object
-const queue = foundQueue.map(tracks => JSON.parse(tracks))
+async function getQueue(roomObjectId) {
+  const key = roomKey(roomObjectId);
+  const redisType = await redisClient.type(key);
 
-return queue
-  
+  if (redisType === 'string') {
+    const cached = await redisClient.get(key);
+    if (cached) {
+      return normalizeQueueData(cached);
+    }
+  }
+
+  if (redisType === 'zset') {
+    const entries = await redisClient.zRange(key, 0, -1);
+    return entries.map(entry => {
+      try {
+        return JSON.parse(entry);
+      } catch {
+        return null;
+      }
+    }).filter(Boolean);
+  }
+
+  const queueDoc = await Queue.findOne({room: roomObjectId}).lean();
+  const queue = queueDoc?.tracks || [];
+
+  await redisClient.set(key, JSON.stringify(queue));
+
+  return queue;
 }
 
+async function setQueue(roomObjectId, updatedTracks) {
+  const key = roomKey(roomObjectId);
 
-export {getQueue}
+  const updatedQueue = await Queue.findOneAndUpdate(
+    {room: roomObjectId},
+    {tracks: updatedTracks},
+    {new: true, upsert: true}
+  ).lean();
+
+  await redisClient.set(key, JSON.stringify(updatedQueue.tracks || []));
+
+  return updatedQueue;
+}
+
+export { getQueue, setQueue };
