@@ -1,68 +1,103 @@
 // roomState.js
-import {redisClient} from '../Database/redisClient.js'
-import { Queue } from '../Models/queue.model.js'
 
-const roomKey = (roomObjectId) => `room:${roomObjectId}:queue`;
+import { constants } from "vm";
+import { redisClient } from "../Database/redisClient.js";
+import {Queue} from "../Models/queue.model.js"
+const roomKey = (roomCode) => `room:${roomCode}:queue`
+const tracksKey = (roomCode) => `tracks:${roomCode}:queue`
 
-function normalizeQueueData(queueData) {
-  if (Array.isArray(queueData)) {
-    return queueData;
+// -------------- GET QUEUE --------------
+async function getQueue(roomCode, roomId){
+
+  const sortedTrackId = await redisClient.zRange(roomKey(roomCode), 0, -1, {REV: true});
+  if(sortedTrackId.length !== 0){
+    const sortedQueue = await redisClient.hmGet(tracksKey(roomCode), sortedTrackId)
+    const queue = sortedQueue.map(item => JSON.parse(item))
+    
+    return queue;
   }
 
-  if (typeof queueData === 'string') {
-    try {
-      const parsed = JSON.parse(queueData);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }
+  const queueFromDB = await Queue.findOne({room: roomId}).lean();
+  if(!queueFromDB || queueFromDB?.tracks?.length ) return [];
 
-  return [];
+  const trackQueue = queueFromDB.tracks;
+
+  const pipeline = redisClient.multi();
+
+  pipeline.del(roomKey(roomCode));
+  pipeline.del(tracksKey(roomCode));
+
+  trackQueue.forEach((track, index) => {
+    pipeline.zAdd(roomKey(roomCode), {
+      score: track.upvote_count || 0,
+      value: String(track.track_id)
+    })
+
+    pipeline.hSet(
+      tracksKey(roomCode),
+      String(track.track_id),
+      JSON.stringify(track)
+    )
+  })
+
+  await pipeline.exec();
+
+  return trackQueue;
 }
 
-async function getQueue(roomObjectId) {
-  const key = roomKey(roomObjectId);
-  const redisType = await redisClient.type(key);
+// -------------- SET QUEUE --------------
+async function setQueue(roomCode, track, task, roomId) {
+  const pipeline = redisClient.multi();
 
-  if (redisType === 'string') {
-    const cached = await redisClient.get(key);
-    if (cached) {
-      return normalizeQueueData(cached);
-    }
+  if(task === 'add'){
+      pipeline.zAdd( roomKey(roomCode), {
+        score: track.upvote_count,
+        value: String(track.track_id)
+      })
+
+      pipeline.hSet(tracksKey(roomCode),
+      String(track.track_id),
+      JSON.stringify(track)
+      )
   }
 
-  if (redisType === 'zset') {
-    const entries = await redisClient.zRange(key, 0, -1);
-    return entries.map(entry => {
-      try {
-        return JSON.parse(entry);
-      } catch {
-        return null;
-      }
-    }).filter(Boolean);
+  if(task === 'remove'){
+    pipeline.zRem( roomKey(roomCode), String(track.track_id));
+    pipeline.hDel( roomKey(roomCode), String(track.track_id))
   }
 
-  const queueDoc = await Queue.findOne({room: roomObjectId}).lean();
-  const queue = queueDoc?.tracks || [];
 
-  await redisClient.set(key, JSON.stringify(queue));
+  await pipeline.exec();
 
-  return queue;
+  // After this we need to update the mongoDb database also
+  return await getQueue(roomKey(roomCode), roomId);
 }
 
-async function setQueue(roomObjectId, updatedTracks) {
-  const key = roomKey(roomObjectId);
+async function upvoteSong(track_id, roomCode, roomId){
+  const trackId = track_id;
 
-  const updatedQueue = await Queue.findOneAndUpdate(
-    {room: roomObjectId},
-    {tracks: updatedTracks},
-    {new: true, upsert: true}
-  ).lean();
+  await  redisClient.zIncrBy(roomKey(roomCode), 1, trackId) // this will increase the vote count
 
-  await redisClient.set(key, JSON.stringify(updatedQueue.tracks || []));
+  // now we also need to update the upvote count in hash bcoz this is where the whole song details stored
+  const rawTrackInfo = await redisClient.hGet(roomKey(roomCode), trackId);
 
-  return updatedQueue;
+  const trackInfo = await JSON.parse(rawTrackInfo);
+  trackInfo.upvote_count += 1;
+
+  await redisClient.hSet(roomKey(roomCode), trackId, trackInfo)
+  // Now we need to get the latest order of the queue bcoz due to this upvote the order must changed.
+  return await getQueue(roomKey(roomCode), roomId)
 }
 
-export { getQueue, setQueue };
+async function removeUpvoteSong(track_id, roomCode, roomId){
+  
+  await redisClient.zIncrBy(roomKey(roomCode), -1, track_id);
+  const rawTrackInfo = await redisClient.hGet(roomKey(roomCode), track_id)
+  const trackInfo = await JSON.parse(rawTrackInfo);
+  trackInfo.upvote_count -= 1;
+  await redisClient.hSet(roomKey(roomCode), track_id, trackInfo);
+
+  return getQueue(roomKey(roomCode), roomId)
+}
+
+export {getQueue, setQueue, upvoteSong, removeUpvoteSong}

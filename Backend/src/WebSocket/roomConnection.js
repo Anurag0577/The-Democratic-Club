@@ -40,8 +40,6 @@ function broadCastToRoom(roomCode, payload){
         return
     }
 
-
-
     // convert this payload into string
     const message =  JSON.stringify(payload)
     const clients = roomConnections.get(roomCode);

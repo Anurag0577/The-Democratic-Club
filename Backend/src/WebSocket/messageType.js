@@ -6,8 +6,9 @@ const messageType = {
     LEAVE_ROOM: 'LEAVE_ROOM',
     ADD_SONG: 'ADD_SONG',
     REMOVE_SONG: 'REMOVE_SONG',
-    VOTE : 'VOTE',
-    SKIP_SONG : 'SKIP_SONG',
+    ADD_UPVOTE : 'ADD_UPVOTE',
+    REMOVE_UPVOTE : 'REMOVE_UPVOTE',
+    SKIP_SONG : 'SKIP_SONG', // may be there will be no need to use this
     PLAY: 'PLAY',
     PAUSE : 'PAUSE',
     SONG_ENDED: 'SONG_ENDED',

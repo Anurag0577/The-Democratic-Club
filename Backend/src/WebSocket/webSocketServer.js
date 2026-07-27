@@ -13,8 +13,8 @@ export function initialiseWebSocketServer(server){
 
         socket.on('message', async function message(data){
             try {
-                const textMessage = JSON.parse(data);
-                await messageHandler(socket, textMessage);
+                const data = JSON.parse(data);
+                await messageHandler(socket, data);
             } catch(err) {
                 console.error('Failed to parse or handle WS message:', err);
                 try {

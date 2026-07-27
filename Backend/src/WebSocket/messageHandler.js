@@ -1,15 +1,18 @@
+import { queryObjects } from 'v8';
 import { Room } from '../Models/room.model.js'
 import {messageType} from '../WebSocket/messageType.js'
 import { joinRoom, leaveRoom, broadCastToRoom } from './roomConnection.js'
-import { getQueue } from './roomState.js'
+import { getQueue, setQueue, upvoteSong } from './roomState.js'
 
 async function messageHandler(socket, data){
     try {
         switch(data.type){
+
+            // --------  JOIN ROOM [ roomCode ]  ----------------
             case messageType.JOIN_ROOM : {
-                const roomCode = data.roomCode;
                 
-                // Validate roomCode exists
+                const roomCode = data.roomCode;
+
                 if(!roomCode) {
                     return socket.send(JSON.stringify({
                         type: messageType.ERROR,
@@ -17,19 +20,9 @@ async function messageHandler(socket, data){
                     }));
                 }
 
-                // Add socket to in-memory room map
                 joinRoom(roomCode, socket);
 
-                /*
-                1. fetch the list of members from the DB
-                2. try to fetch queue current state from redis 
-                3. if not found just fetch it from the DB
-                4. Now sync current ROOM_STATE for the current user
-                5. Broadcast 'MEMBER_UPDATE' to every other users in the room
-                */
-
-                // Fetch room from DB using roomCode (not _id)
-                const room = await Room.findOne({ roomCode });
+                const room = await Room.findOne({ roomCode }).lean();
                 
                 if(!room) {
                     return socket.send(JSON.stringify({
@@ -39,19 +32,15 @@ async function messageHandler(socket, data){
                 }
 
                 const memberCount = room.members?.length || 0;
+                const queue = await getQueue(room.roomCode, room._id);
 
-                // Fetch the latest queue state (await the async call)
-                const queue = await getQueue(room._id);
-
-                // Send the current room state to current user only
                 socket.send(JSON.stringify({
                     type: messageType.CURRENT_ROOM_STATE,
-                    queue,
+                    queue, // this is array of object
                     memberCount,
                     room
                 }));
 
-                // Tell other users someone joined the room
                 broadCastToRoom(roomCode, {
                     type: messageType.MEMBER_UPDATED,
                     count: memberCount,
@@ -61,9 +50,8 @@ async function messageHandler(socket, data){
                 break;
             }
 
-            // LEAVE ROOM
+            // ------------ LEAVE ROOM [  ] ------------
             case messageType.LEAVE_ROOM : {
-                // call leave room function (it will remove the socket from the roomConnections)
                 leaveRoom(socket);
                 const roomCode = socket.roomCode;
                 if(!roomCode){
@@ -72,8 +60,8 @@ async function messageHandler(socket, data){
                             payload: 'Room not found'
                         }));
                 }
-                // fetch the latest members list from the DB
-                const room = await Room.findOne({roomCode});
+  
+                const room = await Room.findOne({roomCode}).lean();
                 const memberCount = room.members?.length || 0;
 
                 broadCastToRoom(roomCode, {
@@ -85,16 +73,57 @@ async function messageHandler(socket, data){
                 break;
             }
 
-            // ADD SONG
+            // --------------- ADD SONG [ track , roomCode ] ------------------
             case messageType.ADD_SONG : {
-                const roomObjectId = data.roomId;
-                // get the latest queue form the redis
-                const currentQueue = await getQueue(roomObjectId);
-                // add the song in it
-                // set the queue
-                // broadcast the updated queue to other member 
+                let track = JSON.parse(data.track)
+                const updateQueue =  await setQueue(data.roomCode, track, add, data.roomId);
+
+                broadCastToRoom(data.roomCode, {
+                    type: messageType.QUEUE_UPDATE,
+                    queue: updateQueue
+                })
             }
 
+            // ------------ REMOVE SONG [ track, roomCode, roomId  ]
+            case messageType.REMOVE_SONG : {
+                let track = JSON.parse(data.track);
+                const updateQueue = await setQueue(data.roomCode, track, remove, data.roomId);
+
+                broadCastToRoom(data.roomCode, {
+                    type: messageType.QUEUE_UPDATE,
+                    queue: updateQueue
+                })
+            }
+
+            // ------------- ADD UPVOTE [ room_id, track_id, roomCode ]
+            case messageType.ADD_UPVOTE : {
+    
+                const track_id = data.track_id;
+                const roomCode = data.roomCode;
+                const roomId = data.roomId;  
+                
+                const updatedQueue = upvoteSong(track_id, roomCode, roomId);
+
+                broadCastToRoom(roomCode, {
+                    type: messageType.QUEUE_UPDATE,
+                    queue: updatedQueue
+                })
+            }
+
+            // ------------- REMOVE UPVOTE [ room_id, track_id, roomCode ]
+            case messageType.REMOVE_UPVOTE : {
+                const track_id = data.track_id;
+                const roomCode = data.roomCode;
+                const roomId = data.roomId;  
+
+                const updatedQueue = removeUpvoteSong(track_id, roomCode, roomId);
+
+                broadCastToRoom(roomCode, {
+                    type: messageType.QUEUE_UPDATE,
+                    queue: updatedQueue
+                })
+            }
+            
         }
     } catch(err) {
         console.error('messageHandler error:', err);
@@ -104,7 +133,7 @@ async function messageHandler(socket, data){
                 payload: 'Server error'
             }));
         } catch(e) {
-            // ignore send errors
+
         }
     }
 }
