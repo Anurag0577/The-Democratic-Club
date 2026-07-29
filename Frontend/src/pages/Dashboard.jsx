@@ -154,7 +154,10 @@ export function Dashboard() {
                   placeholder="Enter room code here"
                   className="py-2 px-4 border-black border-2 rounded-xl "
                 />
-                <button className="py-2 px-4 bg-black text-white rounded-xl cursor-pointer w-full lg:auto border-3 border-transparent hover:border-white transition-colors">
+                <button 
+                className="py-2 px-4 bg-black text-white rounded-xl cursor-pointer w-full lg:auto border-3 border-transparent hover:border-white transition-colors"
+                
+                >
                   Search
                 </button>
               </div>
