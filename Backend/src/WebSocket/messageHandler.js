@@ -73,7 +73,7 @@ async function messageHandler(socket, data){
                 break;
             }
 
-            // --------------- ADD SONG [ track , roomCode ] ------------------
+            // --------------- ADD SONG [ track , roomCode, roomId ] ------------------
             case messageType.ADD_SONG : {
                 let track = JSON.parse(data.track)
                 const updateQueue =  await setQueue(data.roomCode, track, add, data.roomId);
@@ -95,7 +95,7 @@ async function messageHandler(socket, data){
                 })
             }
 
-            // ------------- ADD UPVOTE [ room_id, track_id, roomCode ]
+            // ------------- ADD UPVOTE [ roomId, track_id, roomCode ]
             case messageType.ADD_UPVOTE : {
     
                 const track_id = data.track_id;

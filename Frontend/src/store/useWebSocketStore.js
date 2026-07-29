@@ -81,7 +81,38 @@ const useWebSocketStore = create((get, set) => ({
             set({ error: payload.message || 'An error occurred' });
         });
 
-    }
+    },
+
+    // SEND MESSAGES TO THE WEBSOCKET SERVER
+
+
+    addSong = (track, roomCode, roomId) => {
+        websocketService.sendMessage(messageType.ADD_SONG, {track, roomCode, roomId})
+    },
+
+    removeSong = (track, roomCode, roomId) => {
+        websocketService.sendMessage(messageType.REMOVE_SONG, {track, roomCode, roomId})
+    },
+
+    addUpvote = (track_id, roomId, roomCode) => {
+        websocketService.sendMessage(messageType.ADD_UPVOTE, {track_id, roomId, roomCode})
+    },
+
+    removeUpvote = (track_id, roomId, roomCode) => {
+        websocketService.sendMessage(messageType.REMOVE_UPVOTE, {track_id, roomId, roomCode})
+    },
+
+    play: () => {
+        websocketService.sendMessage(messageType.PLAY, {});
+    },
+
+    pause: () => {
+        websocketService.sendMessage(messageType.PAUSE, {});
+    },
+
+    skipSong: () => {
+        websocketService.sendMessage(messageType.SKIP_SONG, {});
+    },
 
 }))
 
