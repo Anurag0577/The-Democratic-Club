@@ -25,7 +25,7 @@ const useWebSocketStore = create((get, set) => ({
 
         websocketService.sendMessage(messageType.JOIN_ROOM, {roomCode});
 
-        
+        registerHanlders();
     },
 
     leaveRoom: () => {
@@ -47,7 +47,7 @@ const useWebSocketStore = create((get, set) => ({
 
     registerHanlders : () => {
 
-        websocketService.onmessage(messageType.QUEUE_UPDATE, (payload) => {
+        websocketService.onMessage(messageType.QUEUE_UPDATE, (payload) => {
             console.log("Queue updated!", payload.queue)
             // when get this type of value just update the queue
             set((state) => ({
@@ -55,21 +55,21 @@ const useWebSocketStore = create((get, set) => ({
             }))
         })
 
-        websocketService.onmessage(messageType.NOW_PLAYING, (payload) => {
+        websocketService.onMessage(messageType.NOW_PLAYING, (payload) => {
             console.log("Now playing track information", payload.track )
             set((state) => ({
                 roomState : {...state.roomState, nowPlaying: payload.track}
             }))
         })
 
-        websocketService.onmessage(messageType.PLAYBACK_STATUS, (payload) => {
+        websocketService.onMessage(messageType.PLAYBACK_STATUS, (payload) => {
             console.log("Playback status", payload.isPlaying);
             set(state => ({
                 roomState: {...state.roomState, isPlaying: payload.isPlaying}
             }))
         })
 
-        websocketService.onmessage(messageType.MEMBER_UPDATED, (payload) => {
+        websocketService.onMessage(messageType.MEMBER_UPDATED, (payload) => {
             console.log("Member update", payload.memberList )
             set((state) => ({
                 roomCode: {...state.roomState, members: payload.memberList}
