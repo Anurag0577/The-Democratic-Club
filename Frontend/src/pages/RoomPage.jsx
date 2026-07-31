@@ -25,7 +25,6 @@ export default function RoomPage() {
     const isAuthenticatedValue = localStorage.getItem('isAuthenticated') === 'true'
     useAuthStore.setState({isAuthenticated: isAuthenticatedValue })
     checkSpotifyAuthentication(CLIENT_ID);
-
   }, [checkSpotifyAuthentication, isAuthenticated, initialiseToken])
   // Current Song State with gradient accent
   const [currentSong] = useState({
@@ -128,8 +127,6 @@ export default function RoomPage() {
   //   shareLink: 'thedemocraticclub.com/room/1234',
   // });
 
-  
-
   // Handlers
   const handleLogout = () => console.log('[v0] Logout clicked');
   const handleLeaveRoom = () => console.log('[v0] Leave room clicked');
@@ -149,10 +146,6 @@ export default function RoomPage() {
     setQueue(newQueue);
   };
 
-
-
-
-
   return (
     <div
     className="h-screen overflow-hidden flex flex-col transition-[background] duration-700"
@@ -161,12 +154,12 @@ export default function RoomPage() {
           backgroundColor: '#000',
         }}>
       {/* Universal Header */}
-      <div className="flex-shrink-0">
+      <div className="shrink-0">
         <Header userName={userName} onLogout={handleLogout} roomName={room?.roomName || 'Room'} />
       </div>
 
       {/* Main Responsive Container */}
-      <div className="flex-grow overflow-hidden">
+      <div className="grow overflow-hidden">
         
         {/* DESKTOP VIEW */}
         <div className="hidden lg:flex h-full gap-4 px-4 pb-4 overflow-hidden">
@@ -195,7 +188,7 @@ export default function RoomPage() {
           </div>
 
           {/* Queue Column (Enforces min width of 84 units / 21rem) */}
-          <div className="flex-1 min-w-[21rem] flex-shrink-0 overflow-y-auto">
+          <div className="flex-1 min-w-[21rem] shrink-0 overflow-y-auto">
             <QueueSection
               queue={queue}
               onAddSong={handleAddSong}
@@ -207,7 +200,7 @@ export default function RoomPage() {
 
         {/* MOBILE VIEW */}
         <div className="lg:hidden flex flex-col h-full overflow-y-auto px-4 pb-6 space-y-4">
-          <div className="w-full flex-shrink-0">
+          <div className="w-full shrink-0">
             <PlayerSection
               currentSong={currentSong}
               accentColor={accentColor}
@@ -221,7 +214,7 @@ export default function RoomPage() {
             />
           </div>
 
-          <div className="w-full flex-shrink-0">
+          <div className="w-full shrink-0">
             <QueueSection
               queue={queue}
               onAddSong={handleAddSong}
@@ -231,7 +224,7 @@ export default function RoomPage() {
             />
           </div>
 
-          <div className="w-full flex-shrink-0">
+          <div className="w-full shrink-0">
             <RoomDetailsCard
               roomDetails={room}
               onLeaveRoom={handleLeaveRoom}

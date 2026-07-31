@@ -1,7 +1,7 @@
 import {create} from "zustand";
 import { websocketService } from "../services/websocketServices.js";
 import {messageType} from "../Utilities/messageType.js"
-const useWebSocketStore = create((get, set) => ({
+const useWebSocketStore = create((set, get) => ({
     // states
     roomState: {
         queue: [],
@@ -25,7 +25,7 @@ const useWebSocketStore = create((get, set) => ({
 
         websocketService.sendMessage(messageType.JOIN_ROOM, {roomCode});
 
-        registerHanlders();
+        get().registerHanlders();
     },
 
     leaveRoom: () => {
@@ -72,7 +72,7 @@ const useWebSocketStore = create((get, set) => ({
         websocketService.onMessage(messageType.MEMBER_UPDATED, (payload) => {
             console.log("Member update", payload.memberList )
             set((state) => ({
-                roomCode: {...state.roomState, members: payload.memberList}
+                roomState: {...state.roomState, members: payload.memberList}
             }))
         })
 
