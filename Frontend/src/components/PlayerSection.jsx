@@ -19,8 +19,10 @@ export default function PlayerSection({
 }) {
   return (
     <div className="border border-white/10 rounded-2xl overflow-hidden h-full flex flex-col relative bg-black">
-
-      <img
+      {
+        (currentSong) ? (
+          <>
+          <img
         src={songImageUrl}
         alt=""
         className="absolute inset-0 w-full h-full object-contain object-center"
@@ -133,12 +135,6 @@ export default function PlayerSection({
           `}</style>
         </div>
 
-
-
-
-
-
-
         <div className="text-center mb-3 md:mb-6">
           <h2 className="text-white text-base md:text-2lg lg:text-4xl font-semibold mb-2 md:mb-4 text-shadow-2xl">
             {currentSong.title}
@@ -203,6 +199,15 @@ export default function PlayerSection({
           </button>
         </div>
       </div>
+      </>
+        ) : (
+            <div className='flex flex-col justify-center items-center text-white h-full'>
+              <h1 className=' text-4xl '>Nothing Playing</h1>
+              <p>This room is waiting for the first song.</p>
+            </div>
+        )
+      }
     </div>
+
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import Header from '../components/Header.jsx';
 import RoomDetailsCard from '../components/RoomDetailsCard.jsx';
 import PlayerSection from '../components/PlayerSection.jsx';
@@ -8,6 +8,10 @@ import { useAccentColor } from '../hooks/useAccentColor.js';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios.js';
 import useAuthStore from '../store/useAuthStore.js';
+import { useRoomStore } from '../store/useRoomStore.js';
+import { websocketService } from '../services/websocketServices.js' // 1. IMPORT WEBSOCKET SERVICE
+import { messageType } from '../Utilities/messageType.js';
+import { useWebSocketStore } from '../store/useWebSocketStore.js';
 
 const CLIENT_ID = 'e68b2e0ec25345a5a0cc536b33506b84';
 
@@ -15,17 +19,52 @@ export default function RoomPage() {
   const [userName] = useState('Pushpa');
   const [isPlaying, setIsPlaying] = useState(true);
   const { roomCode } = useParams();
+  const navigate = useNavigate();
 
-    const checkSpotifyAuthentication = useAuthStore(state => state.checkSpotifyAuthentication)
-  const isAuthenticated = useAuthStore(state => state.isAuthenticated)
-  const initialiseToken = useAuthStore(state => state.initialiseToken)
-  
-    useEffect(() => {
+  const user = useAuthStore(state => state.user); // Get current logged in user
+  const checkSpotifyAuthentication = useAuthStore(state => state.checkSpotifyAuthentication);
+  const initialiseToken = useAuthStore(state => state.initialiseToken);
+
+  // Zustand state variables
+  const totalMembers = useRoomStore(state => state.totalMember);
+  const setTotalMembers = useRoomStore(state => state.setTotalMember);
+  const room = useRoomStore(state => state.room)
+
+  // Grab actions and state from useWebSocketStore
+  const joinRoom = useWebSocketStore((state) => state.joinRoom);
+  const leaveRoom = useWebSocketStore((state) => state.leaveRoom);
+  const roomState = useWebSocketStore((state) => state.roomState);
+
+  // Fixed Auth Effect (Removed 'isAuthenticated' from dependencies)
+  useEffect(() => {
     initialiseToken();
-    const isAuthenticatedValue = localStorage.getItem('isAuthenticated') === 'true'
-    useAuthStore.setState({isAuthenticated: isAuthenticatedValue })
+    const isAuthenticatedValue = localStorage.getItem('isAuthenticated') === 'true';
+    useAuthStore.setState({ isAuthenticated: isAuthenticatedValue });
     checkSpotifyAuthentication(CLIENT_ID);
-  }, [checkSpotifyAuthentication, isAuthenticated, initialiseToken])
+  }, [checkSpotifyAuthentication, initialiseToken]);
+
+  // 2. WEBSOCKET CONNECTION EFFECT
+  useEffect(() => {
+    // Check for required connection parameters
+    if (roomCode && user?.id) {
+      console.log(`Joining room via store: ${roomCode} for user: ${user.id}`);
+      
+      // Pass roomId (or roomCode as roomId depending on backend contract), userId, roomCode
+      
+      joinRoom(roomCode, user.id, roomCode);
+    } else {
+      console.warn('Skipping joinRoom: missing roomCode or user.id', {
+        roomCode,
+        userId: user?.id,
+      });
+    }
+
+    // Cleanup on unmount or URL change
+    return () => {
+      leaveRoom();
+    };
+  }, [roomCode, user?.id, joinRoom, leaveRoom]);
+
   // Current Song State with gradient accent
   const [currentSong] = useState({
     title: 'Winning Speech',
@@ -33,11 +72,9 @@ export default function RoomPage() {
     album: 'Four You',
     genre: 'Punjabi',
     year: '2021',
-    imageUrl:
-      "https://i.scdn.co/image/ab67616d0000b2736c8802411130056f447257a6",
+    imageUrl: 'https://i.scdn.co/image/ab67616d0000b2736c8802411130056f447257a6',
     requestedBy: 'Armaan Singh',
-    requestedByAvatar:
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop',
+    requestedByAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop',
     currentTime: 21,
     totalTime: 190,
     currentTimeFormatted: '0:21',
@@ -64,73 +101,22 @@ export default function RoomPage() {
       likes: 18,
       isLiked: false,
     },
-    {
-      title: 'Obsessed',
-      artists: 'Riar Saab',
-      duration: '3:45',
-      imageUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop',
-      likes: 16,
-      isLiked: false,
-    },
-    {
-      title: 'Husn',
-      artists: 'Anuv Jain',
-      duration: '3:20',
-      imageUrl: 'https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=100&h=100&fit=crop',
-      likes: 14,
-      isLiked: false,
-    },
-    {
-      title: 'Iktara',
-      artists: 'Amit Trivedi, Kavita Seth',
-      duration: '2:55',
-      imageUrl: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=100&h=100&fit=crop',
-      likes: 12,
-      isLiked: false,
-    },
   ]);
 
-  // function to fetch room details
-  const fetchingRoomDetails = async () => {
-    const response = await api.post('/room/room-details', {
-      roomCode,
-    }, {
-      withCredentials: true,
-    });
-    console.log(response.data.data)
-    return response?.data?.data;
+  // Handlers
+  const handleLeaveRoom = () => {
+    leaveRoom();
+    navigate('/dashboard');
   };
 
-  // fetching room details
-  const { data: room, isLoading, isError } = useQuery({
-    queryKey: ['roomDetails', roomCode],
-    queryFn: fetchingRoomDetails,
-    enabled: Boolean(roomCode),
-  });
-
-  if (!roomCode) {
-    return <div>We did not find any room code from the URL.</div>;
-  }
-
-  if (isLoading) return <div>Fetching room information...</div>;
-  if (isError) return <div>We are getting error</div>;
-
-
-  // Room Details State
-  // const [roomDetailsDemo] = useState({
-  //   roomName: `Anurag's Room`,
-  //   createdDate: 'May 12, 2024',
-  //   hostName: 'Armaan Singh',
-  //   totalMembers: 24,
-  //   nowPlayingTime: '0:21 / 3:10',
-  //   roomCode: '1234',
-  //   shareLink: 'thedemocraticclub.com/room/1234',
-  // });
-
-  // Handlers
-  const handleLogout = () => console.log('[v0] Logout clicked');
-  const handleLeaveRoom = () => console.log('[v0] Leave room clicked');
-  const handleCopyLink = () => console.log('[v0] Copy link clicked');
+  const handleCopyLink = async () => {
+    const shareUrl = `${window.location.origin}/room/${roomCode}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+    } catch (error) {
+      console.error('Failed to copy room link:', error);
+    }
+  };
   const handlePlayPause = () => setIsPlaying(!isPlaying);
   const handlePrevious = () => console.log('[v0] Previous song clicked');
   const handleNext = () => console.log('[v0] Next song clicked');
@@ -148,32 +134,29 @@ export default function RoomPage() {
 
   return (
     <div
-    className="h-screen overflow-hidden flex flex-col transition-[background] duration-700"
-    style={{
-          backgroundImage: `linear-gradient(180deg, ${accentColor}99 0%, rgba(0,0,0,0.95) 90%, #000 100%)`,
-          backgroundColor: '#000',
-        }}>
+      className="h-screen overflow-hidden flex flex-col transition-[background] duration-700"
+      style={{
+        backgroundImage: `linear-gradient(180deg, ${accentColor}99 0%, rgba(0,0,0,0.95) 90%, #000 100%)`,
+        backgroundColor: '#000',
+      }}
+    >
       {/* Universal Header */}
       <div className="shrink-0">
-        <Header userName={userName} onLogout={handleLogout} roomName={room?.roomName || 'Room'} />
+        <Header />
       </div>
 
       {/* Main Responsive Container */}
       <div className="grow overflow-hidden">
-        
         {/* DESKTOP VIEW */}
         <div className="hidden lg:flex h-full gap-4 px-4 pb-4 overflow-hidden">
-          {/* Room Details Column */}
           <div className="w-[350px] overflow-hidden">
             <RoomDetailsCard
-              roomDetails={room}
               onLeaveRoom={handleLeaveRoom}
               onCopyLink={handleCopyLink}
             />
           </div>
 
-          {/* Main Player Column */}
-          <div className=" min-w-[450px] overflow-hidden aspect-square">
+          <div className="min-w-[450px] overflow-hidden aspect-square">
             <PlayerSection
               currentSong={currentSong}
               accentColor={accentColor}
@@ -187,7 +170,6 @@ export default function RoomPage() {
             />
           </div>
 
-          {/* Queue Column (Enforces min width of 84 units / 21rem) */}
           <div className="flex-1 min-w-[21rem] shrink-0 overflow-y-auto">
             <QueueSection
               queue={queue}
@@ -226,14 +208,12 @@ export default function RoomPage() {
 
           <div className="w-full shrink-0">
             <RoomDetailsCard
-              roomDetails={room}
+              isMobile
               onLeaveRoom={handleLeaveRoom}
               onCopyLink={handleCopyLink}
-              isMobile
             />
           </div>
         </div>
-
       </div>
     </div>
   );

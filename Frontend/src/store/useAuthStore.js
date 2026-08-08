@@ -1,7 +1,7 @@
 import {create} from 'zustand'
 import {jwtDecode} from 'jwt-decode'
 
-const useAuthStore = create((set) => ({
+const useAuthStore = create((set, get) => ({
     user: null,
     spotify_access_token: null,
     isAuthenticated: false,
@@ -11,7 +11,6 @@ const useAuthStore = create((set) => ({
         if(token){
             try {
                 const decodedToken = jwtDecode(token);
-                console.log("This is the value of decodedToken: ",decodedToken)
                 set({user: decodedToken, isAuthenticated: true})
                 localStorage.setItem('isAuthenticated', true)
             } catch (error) {
@@ -32,16 +31,15 @@ const useAuthStore = create((set) => ({
         if(spotify_accessToken) {
              return set({spotify_access_token: spotify_accessToken})
         } else {
-            // let try to generate accessToken using refreshToken
+
             const refreshToken = localStorage.getItem('spotify_refresh_token')
 
-            // if refresh token not available, please throw error
+
             if(!refreshToken) {
                 throw new Error(401, "Please login with your spotify account.")
             }
 
-                console.log('Regenerating access token again.')
-               // refresh token that has been previously stored
+               console.log('Regenerating access token again.')
                const url = "https://accounts.spotify.com/api/token";
             
                const payload = {
@@ -87,7 +85,6 @@ const useAuthStore = create((set) => ({
     updateCurrentUserInfo: (token) => {
         // save access token for future use
         localStorage.setItem('accessToken', token)
-
         // extract the user information from the access token
         const decodedToken = jwtDecode(token);
         set({user: decodedToken, isAuthenticated: true})

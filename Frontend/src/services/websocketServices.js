@@ -1,83 +1,93 @@
 
-class websocketService {
-    constructor(){
+class WebSocketService {
+    constructor() {
         this.socket = null;
         this.messageHandlers = {};
         this.isConnected = false;
     }
 
-    connect(roomId, userId){
-
-        if(this.socket){
-            this.socket.close()
+    connect(roomId, userId, onOpenCallback) {
+        if (this.socket) {
+            this.socket.close();
         }
 
-
-        const wsUrl = `ws://localhost:5173/ws?roomId=${roomId}&userId=${userId}`
-        this.socket = new WebSocket(wsUrl)
+        const wsUrl = `ws://localhost:3000/ws?roomId=${roomId}&userId=${userId}`;
+        this.socket = new WebSocket(wsUrl);
 
         this.socket.onopen = () => {
             console.log('Websocket connected.');
-            this.isConnected = true
-        }
+            this.isConnected = true;
+            
+            // Execute callback ONLY after the socket opens
+            if (onOpenCallback) {
+                onOpenCallback();
+            }
+        };
 
         this.socket.onclose = () => {
             console.log('Websocket disconnected!');
             this.isConnected = false;
-        }
+        };
 
-        this.socket.error = (error) => {
-            console.log(`Websocket disconnected! Error: ${error}`);
+        this.socket.onerror = (error) => {
+            console.log('Websocket connection error:', error);
             this.isConnected = false;
-        }
-
+        };
 
         this.socket.onmessage = (res) => {
-
             try {
                 const data = JSON.parse(res.data);
-                this.handleMessage(data)
-                console.log(`This is the data I received from backend: Type: ${data.type}, payload: ${data.data}`)
+                console.log( "Websocket (backend -> frontend):", "Type:", data.type, "Payload:", data.payload );
+                this.handleMessage(data);
             } catch (error) {
-                console.error(`Error I am getting: ${error}`)
+                console.error('Error I am getting:', error);
             }
+        };
+    }
+
+    handleMessage(data) {
+        const { type, payload } = data;
+        if (this.messageHandlers[type]) {
+            this.messageHandlers[type](payload);
         }
     }
 
-    handleMessage(data){
-        const {type, payload} = data;
-        if(this.messageHandlers[type]){
-            this.messageHandlers[type](payload)
-        }
-    }
-
-    sendMessage(type, payload){
-        if(this.socket || this.socket.readyState !== WebSocket.OPEN){
-            console.log('Websocket not connected! Message not sent.', type)
+    sendMessage(type, payload) {
+        if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+            console.log('Websocket not connected! Message not sent.', type);
             return false;
         }
 
-        const message = JSON.stringify(payload);
-        this.socket.sendMessage(message)
-        console.log(`Send this message: ${message} `)
-        return true
+        const message = JSON.stringify({ type, payload });
+        console.log("FRONTEND SENDING THIS: ", message);
+        this.socket.send(message);
+        return true;
     }
 
     onMessage(type, handler) {
         this.messageHandlers[type] = handler;
-        console.log("Registered handler for", type)
+        console.log('Registered handler for', type);
     }
 
     offMessage(type) {
-        delete this.messageHandlers[type]
-        console.log("Unregisterd handler for", type)
+        delete this.messageHandlers[type];
+        console.log('Unregisterd handler for', type);
     }
 
-    disconnected(){
-        this.socket.close();
+    disconnect() {
+        if (this.socket) {
+            this.socket.close();
+        }
+
         this.socket = null;
         this.isConnected = false;
     }
+
+    disconnected() {
+        this.disconnect();
+    }
 }
 
-export {websocketService};
+const websocketService = new WebSocketService();
+
+export { websocketService };

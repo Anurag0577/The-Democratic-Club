@@ -10,10 +10,11 @@ async function messageHandler(socket, data){
 
             // --------  JOIN ROOM [ roomCode ]  ----------------
             case messageType.JOIN_ROOM : {
-                
-                const roomCode = data.roomCode;
-
-                if(!roomCode) {
+                console.log('JOIN ROOM inside code start executing!')
+                const roomCode = data.payload?.roomCode;
+                const userId = data.payload?.userId;
+                if(!roomCode || !userId) {
+                    console.log('Room code or user id did not found! Sending error message to frontend!')
                     return socket.send(JSON.stringify({
                         type: messageType.ERROR,
                         payload: 'Missing roomCode'
@@ -22,52 +23,75 @@ async function messageHandler(socket, data){
 
                 joinRoom(roomCode, socket);
 
-                const room = await Room.findOne({ roomCode }).lean();
+
+                const updatedRoom = await Room.findOneAndUpdate(
+                    {roomCode : roomCode},
+                    { $addToSet: { members: userId } },
+                    { new: true } // Returns the updated document
+                );
                 
-                if(!room) {
+                if(!updatedRoom) {
                     return socket.send(JSON.stringify({
                         type: messageType.ERROR,
                         payload: 'Room not found'
                     }));
                 }
 
-                const memberCount = room.members?.length || 0;
-                const queue = await getQueue(room.roomCode, room._id);
+                
 
-                socket.send(JSON.stringify({
+                const members = updatedRoom.members;
+                const queue = await getQueue(updatedRoom.roomCode, updatedRoom._id);
+                const response = JSON.stringify({
                     type: messageType.CURRENT_ROOM_STATE,
-                    queue, // this is array of object
-                    memberCount,
-                    room
-                }));
+                    payload : {
+                        queue,
+                        members,
+                        room: updatedRoom
+                    }
+                })
+                console.log('Backend ->  frontend : ', response)
+
+                socket.send(response);
 
                 broadCastToRoom(roomCode, {
                     type: messageType.MEMBER_UPDATED,
-                    count: memberCount,
-                    memberList: room.members
+                    payload: {
+                        members
+                    }
                 });
 
                 break;
             }
 
-            // ------------ LEAVE ROOM [  ] ------------
+            // ------------ LEAVE ROOM [ userId ] ------------
             case messageType.LEAVE_ROOM : {
-                leaveRoom(socket);
                 const roomCode = socket.roomCode;
+                const userId = data.payload?.userId;
+
                 if(!roomCode){
                     return socket.send(JSON.stringify({
                             type: messageType.ERROR,
                             payload: 'Room not found'
                         }));
                 }
-  
-                const room = await Room.findOne({roomCode}).lean();
-                const memberCount = room.members?.length || 0;
+
+                leaveRoom(socket);
+
+                if(!userId) break;
+
+                const updatedRoom = await Room.findOneAndUpdate(
+                    { roomCode },
+                    { $pull: { members: userId } },
+                    { new: true }
+                ).lean();
+
+                if(!updatedRoom) break;
 
                 broadCastToRoom(roomCode, {
                     type: messageType.MEMBER_UPDATED,
-                    count: memberCount,
-                    memberList: room.members
+                    payload: {
+                        members: updatedRoom.members
+                    }
                 });
 
                 break;

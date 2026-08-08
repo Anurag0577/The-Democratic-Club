@@ -15,21 +15,29 @@ const useWebSocketStore = create((set, get) => ({
     error: null,
 
     joinRoom: (roomId, userId, roomCode) => {
-        websocketService.connect(roomId, userId);
+
+        get().registerHanlders();
+
+
+        websocketService.connect(roomId, userId, () => {
+            websocketService.sendMessage(messageType.JOIN_ROOM, {roomCode, userId});
+        });
+
         set({
             error: null,
             currentRoomId: roomId,
             currentUserId: userId,
             roomState: { ...get().roomState, roomCode: roomCode },
-        })
-
-        websocketService.sendMessage(messageType.JOIN_ROOM, {roomCode});
-
-        get().registerHanlders();
+        });
     },
 
     leaveRoom: () => {
-        websocketService.disconnected();
+        const { currentUserId, roomState } = get();
+        websocketService.sendMessage(messageType.LEAVE_ROOM, {
+            userId: currentUserId,
+            roomCode: roomState.roomCode,
+        });
+        websocketService.disconnect();
         set({
             roomState : {
                 queue: [],
@@ -42,7 +50,6 @@ const useWebSocketStore = create((set, get) => ({
             currentUserId: null,
         })
 
-        websocketService.sendMessage(messageType.LEAVE_ROOM, {})
     },
 
     registerHanlders : () => {
@@ -70,16 +77,29 @@ const useWebSocketStore = create((set, get) => ({
         })
 
         websocketService.onMessage(messageType.MEMBER_UPDATED, (payload) => {
-            console.log("Member update", payload.memberList )
+            console.log("Member update", payload.members )
             set((state) => ({
-                roomState: {...state.roomState, members: payload.memberList}
+                roomState: {...state.roomState, members: payload.members}
             }))
+            console.log(get().roomState)
         })
 
         websocketService.onMessage(messageType.ERROR, (payload) => {
             console.error('Server error:', payload);
             set({ error: payload.message || 'An error occurred' });
         });
+
+        websocketService.onMessage(messageType.CURRENT_ROOM_STATE, (payload) => {
+            console.log("current room status", payload);
+            set((state) => ({
+                roomState: {
+                    ...state.roomState,
+                    queue: payload.queue ?? [],
+                    members: payload.members ?? payload.room?.members ?? [],
+                    roomCode: payload.room?.roomCode ?? state.roomState.roomCode,
+                },
+            }));
+        })
 
     },
 

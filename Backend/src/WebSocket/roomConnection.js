@@ -8,7 +8,6 @@ function joinRoom(roomCode, socket){
     if(!roomConnections.has(roomCode)){
         roomConnections.set(roomCode, new Set()) // create an empty room
     }
-
     roomConnections.get(roomCode).add(socket);
     socket.roomCode = roomCode; 
 }

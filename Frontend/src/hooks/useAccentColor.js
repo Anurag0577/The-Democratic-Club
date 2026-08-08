@@ -21,7 +21,5 @@ export function useAccentColor(imageUrl, fallback = '#C9A961') {
     };
   }, [imageUrl]); // re-runs automatically whenever the song image changes
 
-  console.log('This is accent color: ' , accentColor)
-
   return accentColor;
 }

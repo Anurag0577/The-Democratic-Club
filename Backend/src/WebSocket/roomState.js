@@ -8,7 +8,7 @@ const tracksKey = (roomCode) => `tracks:${roomCode}:queue`
 
 // -------------- GET QUEUE --------------
 async function getQueue(roomCode, roomId){
-
+  console.log("this means i enter in getQueue")
   const sortedTrackId = await redisClient.zRange(roomKey(roomCode), 0, -1, {REV: true});
   if(sortedTrackId.length !== 0){
     const sortedQueue = await redisClient.hmGet(tracksKey(roomCode), sortedTrackId)

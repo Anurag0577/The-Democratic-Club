@@ -24,8 +24,6 @@ const api = axios.create({
 
         if(accessToken){
             config.headers['Authorization'] = `Bearer ${accessToken}`;
-            console.log('request interceptor executed!')
-            console.log(config)
             return config;
         }
 

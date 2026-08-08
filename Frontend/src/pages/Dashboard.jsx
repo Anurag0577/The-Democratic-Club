@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react'
 import logoImage from '../assets/Images/the_democratic_club_logo_white.png'
 import useAuthStore from '../store/useAuthStore.js'
 import { useNavigate } from 'react-router';
+import { useMutation } from '@tanstack/react-query';
+import api from '../api/axios.js';
+import {toast} from 'sonner'
 
 const CLIENT_ID = 'e68b2e0ec25345a5a0cc536b33506b84';
 const REDIRECT_URI = 'http://127.0.0.1:5173/dashboard'
 const SCOPE = 'user-read-private user-read-email'
-
 
 const generateRandomString = (length) => {
   const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -72,6 +74,8 @@ const getToken = async (code) => {
   return null
 }
 
+
+
 export function Dashboard() {
   const checkSpotifyAuthentication = useAuthStore(state => state.checkSpotifyAuthentication)
   const spotify_access_token = useAuthStore(state => state.spotify_access_token)
@@ -83,6 +87,10 @@ export function Dashboard() {
   const initialiseToken = useAuthStore(state => state.initialiseToken)
   const openRoomCreationModel = useAuthStore(state => state.openRoomCreationModel)
   const navigate = useNavigate();
+
+  // state
+const [roomCode, setRoomCode] = useState('');
+
   useEffect(() => {
     initialiseToken();
     const isAuthenticatedValue = localStorage.getItem('isAuthenticated') === 'true'
@@ -124,6 +132,27 @@ export function Dashboard() {
  
   console.log('This log is from dashboard page, the value of IsAuthentication here is  ', isAuthenticated)
 
+  const joiningRoom = useMutation({
+    mutationKey: 'join_room',
+    mutationFn: async({roomCode}) => {
+      const res = await api.post('/room/join-room', {
+        roomCode
+      },{
+        withCredentials: true
+      })
+      return res?.data?.data;
+    },
+
+    onSuccess: () => {
+      toast('You successfully joined the room.')
+      navigate(`/room/${roomCode}`)
+    },
+    onError: (error) => {
+      toast(`Error: ${error}`)
+      console.log('Getting error while joining room: ', error)
+    }
+  })
+
   return (
     <>
     {(isAuthenticated) ? (
@@ -153,12 +182,16 @@ export function Dashboard() {
                 <input
                   placeholder="Enter room code here"
                   className="py-2 px-4 border-black border-2 rounded-xl "
+                  onChange={e => {
+                    setRoomCode(e.target.value)
+                  }}
+                  value={roomCode}
                 />
                 <button 
                 className="py-2 px-4 bg-black text-white rounded-xl cursor-pointer w-full lg:auto border-3 border-transparent hover:border-white transition-colors"
-                
+                onClick={() => joiningRoom.mutate({roomCode})}
                 >
-                  Search
+                  Join
                 </button>
               </div>
             </div>
