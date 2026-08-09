@@ -1,13 +1,13 @@
 import { FaPlus } from 'react-icons/fa';
 import { BiSolidUpvote } from "react-icons/bi";
 import { SearchTrack } from './SearchTrack.jsx';
-export default function QueueSection({
-  queue,
-  onAddSong,
-  onSongClick,
-  onToggleLike,
-  isMobile,
-}) {
+import { useWebSocketStore } from '../store/useWebSocketStore.js';
+
+export default function QueueSection({isMobile}) {
+
+  // zustand state and actions
+  const queue = useWebSocketStore(state => state.roomState.queue)
+
   return (
     <div className={`border border-white/10 rounded-2xl bg-black/40 backdrop-blur flex flex-col h-full ${isMobile ? 'p-3' : 'p-6'} `}>
       <div className={isMobile ? 'mb-3' : 'mb-6'}>
@@ -24,29 +24,32 @@ export default function QueueSection({
                       {queue.map((song, index) => (
                         <div
                           key={index}
-                          onClick={() => onSongClick(index)}
                           className={`bg-white/5 hover:bg-white/10 rounded-lg cursor-pointer transition-colors duration-200 flex items-center gap-2 md:gap-3 group py-1 px-3`}
                         >
                           <img
-                            src={song.imageUrl}
-                            alt={song.title}
+                            src={song.thumbnail_img}
+                            alt={song.track_name}
                             className={`rounded object-cover flex-shrink-0 ${isMobile ? 'w-8 h-8' : 'w-8 h-8'}`}
                           />
 
                           <div className="flex-grow min-w-0">
                             <p className={`text-white font-semibold truncate ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                              {song.title}
+                              {song.track_name}
                             </p>
-                            <p className={`text-white/60 truncate ${isMobile ? 'text-xs' : 'text-xs'}`}>
-                              {song.artists}
-                            </p>
+                            <div className='flex gap-x-4'>
+                              <p className={`text-white/60 truncate ${isMobile ? 'text-xs' : 'text-xs'}`}>
+                                {song.artist_name}
+                              </p>
+                              <p className={`text-white/60 truncate ${isMobile ? 'text-xs' : 'text-xs'}`}>
+                                {msToTime(song.song_dur)}
+                              </p>
+                            </div>
                           </div>
 
                           <div className="flex items-center gap-1 md:gap-3 flex-shrink-0">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                onToggleLike(index);
                               }}
                               className="text-white/60 hover:text-red-500 transition-colors duration-200 cursor-pointer"
                             >
@@ -70,7 +73,6 @@ export default function QueueSection({
       </div>
 
       <button
-        onClick={onAddSong}
         className={`w-full border border-white text-white hover:bg-white hover:text-black font-semibold rounded-2xl flex items-center justify-center gap-2 transition-colors duration-200 cursor-pointer ${isMobile ? 'py-1 text-xs' : 'py-1'}`}
       >
         <FaPlus className={isMobile ? 'text-xs' : 'text-lg'} />
@@ -78,4 +80,12 @@ export default function QueueSection({
       </button>
     </div>
   );
+}
+
+function msToTime(ms) {
+  if (!ms) return "";
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }

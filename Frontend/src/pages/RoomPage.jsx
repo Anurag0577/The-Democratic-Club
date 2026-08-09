@@ -171,12 +171,7 @@ export default function RoomPage() {
           </div>
 
           <div className="flex-1 min-w-[21rem] shrink-0 overflow-y-auto">
-            <QueueSection
-              queue={queue}
-              onAddSong={handleAddSong}
-              onSongClick={handleSongClick}
-              onToggleLike={handleToggleLike}
-            />
+            <QueueSection/>
           </div>
         </div>
 
@@ -198,10 +193,6 @@ export default function RoomPage() {
 
           <div className="w-full shrink-0">
             <QueueSection
-              queue={queue}
-              onAddSong={handleAddSong}
-              onSongClick={handleSongClick}
-              onToggleLike={handleToggleLike}
               isMobile
             />
           </div>

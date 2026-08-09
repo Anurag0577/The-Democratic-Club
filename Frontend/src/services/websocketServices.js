@@ -59,7 +59,8 @@ class WebSocketService {
         }
 
         const message = JSON.stringify({ type, payload });
-        console.log("FRONTEND SENDING THIS: ", message);
+        console.log(message)
+        console.log("FRONTEND SENDING THIS: ", 'Type', type, 'Payload', payload);
         this.socket.send(message);
         return true;
     }

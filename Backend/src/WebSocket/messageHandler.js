@@ -99,24 +99,31 @@ async function messageHandler(socket, data){
 
             // --------------- ADD SONG [ track , roomCode, roomId ] ------------------
             case messageType.ADD_SONG : {
-                let track = JSON.parse(data.track)
-                const updateQueue =  await setQueue(data.roomCode, track, add, data.roomId);
+                const { track, roomCode, roomId } = data.payload ?? {};
+                if (!track || !roomCode || !roomId) break;
 
-                broadCastToRoom(data.roomCode, {
+                const trackWithDefaults = { upvote_count: 0, ...track };
+                const updateQueue = await setQueue(roomCode, trackWithDefaults, 'add', roomId);
+
+                broadCastToRoom(roomCode, {
                     type: messageType.QUEUE_UPDATE,
-                    queue: updateQueue
-                })
+                    payload: { queue: updateQueue }
+                });
+                break;
             }
 
             // ------------ REMOVE SONG [ track, roomCode, roomId  ]
             case messageType.REMOVE_SONG : {
-                let track = JSON.parse(data.track);
-                const updateQueue = await setQueue(data.roomCode, track, remove, data.roomId);
+                const { track, roomCode, roomId } = data.payload ?? {};
+                if (!track || !roomCode || !roomId) break;
 
-                broadCastToRoom(data.roomCode, {
+                const updateQueue = await setQueue(roomCode, track, 'remove', roomId);
+
+                broadCastToRoom(roomCode, {
                     type: messageType.QUEUE_UPDATE,
-                    queue: updateQueue
-                })
+                    payload: { queue: updateQueue }
+                });
+                break;
             }
 
             // ------------- ADD UPVOTE [ roomId, track_id, roomCode ]

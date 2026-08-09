@@ -60,6 +60,7 @@ const useWebSocketStore = create((set, get) => ({
             set((state) => ({
                 roomState : {...state.roomState, queue: payload.queue}
             }))
+            console.log(get().roomState)
         })
 
         websocketService.onMessage(messageType.NOW_PLAYING, (payload) => {
@@ -99,6 +100,7 @@ const useWebSocketStore = create((set, get) => ({
                     roomCode: payload.room?.roomCode ?? state.roomState.roomCode,
                 },
             }));
+            console.log('-- this is the value of current roomState', get().roomState)
         })
 
     },

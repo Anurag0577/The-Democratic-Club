@@ -63,14 +63,14 @@ async function setQueue(roomCode, track, task, roomId) {
 
   if(task === 'remove'){
     pipeline.zRem( roomKey(roomCode), String(track.track_id));
-    pipeline.hDel( roomKey(roomCode), String(track.track_id))
+    pipeline.hDel(tracksKey(roomCode), String(track.track_id));
   }
 
 
   await pipeline.exec();
 
   // After this we need to update the mongoDb database also
-  return await getQueue(roomKey(roomCode), roomId);
+  return await getQueue(roomCode, roomId);
 }
 
 async function upvoteSong(track_id, roomCode, roomId){
