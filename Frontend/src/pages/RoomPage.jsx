@@ -12,6 +12,7 @@ import { useRoomStore } from '../store/useRoomStore.js';
 import { websocketService } from '../services/websocketServices.js' // 1. IMPORT WEBSOCKET SERVICE
 import { messageType } from '../Utilities/messageType.js';
 import { useWebSocketStore } from '../store/useWebSocketStore.js';
+import { usePlayerStore } from '../store/usePlayerStore.js';
 
 const CLIENT_ID = 'e68b2e0ec25345a5a0cc536b33506b84';
 
@@ -33,7 +34,8 @@ export default function RoomPage() {
   const joinRoom = useWebSocketStore((state) => state.joinRoom);
   const leaveRoom = useWebSocketStore((state) => state.leaveRoom);
   const roomState = useWebSocketStore((state) => state.roomState);
-
+  const currentSong = usePlayerStore((state) => state.currentSong)
+  const setAccentColor = useRoomStore((state) => state.setAccentColor)
 
   // 1. FETCH ROOM DETAILS USING TANSTACK QUERY (POST Request)
   const {
@@ -84,25 +86,9 @@ console.log('RoomCode', roomCode, 'User Id', userrId, 'roomId', roomId)
   }, [roomCode, user?.id, joinRoom, leaveRoom, roomId]);
 
   // Current Song State with gradient accent
-  const [currentSong] = useState({
-    title: 'Winning Speech',
-    artist: 'Karan Aujla',
-    album: 'Four You',
-    genre: 'Punjabi',
-    year: '2021',
-    imageUrl: 'https://i.scdn.co/image/ab67616d0000b2736c8802411130056f447257a6',
-    requestedBy: 'Armaan Singh',
-    requestedByAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop',
-    currentTime: 21,
-    totalTime: 190,
-    currentTimeFormatted: '0:21',
-    totalTimeFormatted: '3:10',
-  });
-
+  
   const accentColor = useAccentColor(currentSong.imageUrl);
-
-  // Queue State
-  // const [queue, setQueue] = useState([]);
+  setAccentColor(accentColor)
 
   // Handlers
   const handleLeaveRoom = () => {
@@ -158,8 +144,6 @@ console.log('RoomCode', roomCode, 'User Id', userrId, 'roomId', roomId)
 
           <div className="min-w-[450px] overflow-hidden aspect-square">
             <PlayerSection
-              currentSong={currentSong}
-              accentColor={accentColor}
             />
           </div>
 
@@ -172,8 +156,6 @@ console.log('RoomCode', roomCode, 'User Id', userrId, 'roomId', roomId)
         <div className="lg:hidden flex flex-col h-full overflow-y-auto px-4 pb-6 space-y-4">
           <div className="w-full shrink-0">
             <PlayerSection
-              currentSong={currentSong}
-              accentColor={accentColor}
             />
           </div>
 

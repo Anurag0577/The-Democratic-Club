@@ -5,12 +5,16 @@ import {
   FaStepBackward,
   FaStepForward,
 } from 'react-icons/fa';
+import { usePlayerStore } from '../store/usePlayerStore';
+import { useRoomStore } from '../store/useRoomStore';
 
-export default function PlayerSection({
-  currentSong,
-  accentColor,
-  isPlaying,
-}) {
+export default function PlayerSection() {
+
+  // zustand state and actions
+  const currentSong = usePlayerStore((state) => state.currentSong)
+  const isPlaying = usePlayerStore((state) => state.isPlaying)
+  const accentColor = useRoomStore((state) => state.accentColor)
+
   return (
     <div className="border border-white/10 rounded-2xl overflow-hidden h-full flex flex-col relative bg-black">
       {
