@@ -9,12 +9,6 @@ import {
 export default function PlayerSection({
   currentSong,
   accentColor,
-  songImageUrl,
-  onPlayPause,
-  onPrevious,
-  onNext,
-  onShuffle,
-  onRepeat,
   isPlaying,
 }) {
   return (
@@ -23,7 +17,7 @@ export default function PlayerSection({
         (currentSong) ? (
           <>
           <img
-        src={songImageUrl}
+        src={currentSong.imageUrl}
         alt=""
         className="absolute inset-0 w-full h-full object-contain object-center"
       />
@@ -157,46 +151,24 @@ export default function PlayerSection({
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-4 md:gap-8">
-          <button
-            onClick={onShuffle}
-            className="text-white/60 hover:text-white text-sm md:text-lg transition-colors duration-200 cursor-pointer"
-            title="Shuffle"
-          >
-            <FaRandom />
-          </button>
-
-          <button
-            onClick={onPrevious}
-            className="text-white/60 hover:text-white text-base md:text-2xl transition-colors duration-200 cursor-pointer"
-            title="Previous"
-          >
-            <FaStepBackward />
-          </button>
-
-          <button
-            onClick={onPlayPause}
-            className="bg-white hover:bg-white text-black rounded-full p-3 md:p-4 text-lg md:text-2xl transition-colors duration-200 shadow-lg cursor-pointer"
-            title={isPlaying ? 'Pause' : 'Play'}
-          >
-            {isPlaying ? <FaPause /> : <FaPlay className="ml-0.5" />}
-          </button>
-
-          <button
-            onClick={onNext}
-            className="text-white/60 hover:text-white text-base md:text-2xl transition-colors duration-200 cursor-pointer"
-            title="Next"
-          >
-            <FaStepForward />
-          </button>
-
-          <button
-            onClick={onRepeat}
-            className="text-white/60 hover:text-white text-sm md:text-lg transition-colors duration-200 cursor-pointer"
-            title="Repeat"
-          >
-            ↻
-          </button>
+        <div className="grid grid-cols-3 items-center w-full">
+          <div></div>
+          <div className="flex justify-center">
+            <button
+              className="bg-white hover:bg-white text-black rounded-full p-3 md:p-4 text-lg md:text-2xl transition-colors duration-200 shadow-lg cursor-pointer"
+              title={isPlaying ? 'Pause' : 'Play'}
+            >
+              {isPlaying ? <FaPause /> : <FaPlay className="ml-0.5" />}
+            </button>
+          </div>
+          <div className="flex justify-start pl-4 md:pl-8">
+            <button
+              className="text-white/60 hover:text-white text-base md:text-2xl transition-colors duration-200 cursor-pointer"
+              title="Next"
+            >
+              <FaStepForward />
+            </button>
+          </div>
         </div>
       </div>
       </>
