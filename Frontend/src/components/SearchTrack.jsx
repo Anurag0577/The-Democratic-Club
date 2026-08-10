@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useRef, useEffect } from "react";
 import { useWebSocketStore } from "../store/useWebSocketStore.js";
+import api from "../api/axios.js";
 
 export function SearchTrack() {
 
     
-    const spotify_access_token = localStorage.getItem("spotify_access_token");
     
     const [searchString, setSearchString] = useState(""); // live input value
     const [submittedQuery, setSubmittedQuery] = useState(""); // value actually searched
@@ -20,50 +20,31 @@ export function SearchTrack() {
     
   const containerRef = useRef(null);
 
-  const baseSpotifySearchURL = "https://api.spotify.com/v1/search";
-
-  async function fetchSearchTrack() {
-    const params = new URLSearchParams({
-      q: `tracks:${submittedQuery}`,
-      type: "track",
-      limit: 4,
-      market: "IN",
-      include_external: "audio",
-    });
-
-    const res = await fetch(`${baseSpotifySearchURL}?${params.toString()}`, {
-      headers: {
-        Authorization: `Bearer ${spotify_access_token}`,
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error(`Spotify search failed: ${res.status}`);
+async function fetchSearchTrack() {
+  const res = await api.post(
+    '/spotify/search/',
+    { submittedQuery, currentRoomId },
+    {
+      headers: { 'Content-Type': 'application/json' },
+      withCredentials: true,
     }
+  );
 
-    const data = await res.json();
-    return data.tracks.items; // array of track objects
-  }
+  return res.data; // axios already parsed the JSON body
+}
 
-  const {
-    data: tracks,
-    isLoading,
-    isFetching,
-    isError,
-  } = useQuery({
-    queryKey: ["spotify-search", submittedQuery],
-    queryFn: fetchSearchTrack,
-    enabled: !!spotify_access_token && submittedQuery.trim().length > 1,
-    gcTime: 1000 * 60 * 10,
-    select: (items) =>
-      items.slice(0, 4).map((track) => ({
-        artist_name: track.artists?.[0]?.name ?? "Unknown artist",
-        thumbnail_img: track.album?.images?.[2]?.url ?? track.album?.images?.[0]?.url,
-        song_dur: track.duration_ms,
-        track_id: track.id,
-        track_name: track.name,
-      })),
-  });
+const {
+  data: tracks,
+  isLoading,
+  isFetching,
+  isError,
+} = useQuery({
+  queryKey: ["spotify-search", currentRoomId, submittedQuery],
+  queryFn: fetchSearchTrack,
+  enabled: !!currentRoomId && submittedQuery.trim().length > 1,
+  gcTime: 1000 * 60 * 10,
+});
+
 
   function handleSearch() {
     const trimmed = searchString.trim();

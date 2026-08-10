@@ -4,13 +4,16 @@ import cors from 'cors';
 import {connectDB} from './Database/db.js'
 import auth from './Routes/auth.route.js'
 import room from './Routes/room.route.js'
+import spotifyAuth from './Routes/spotifyAuth.route.js'
 import dashboard from './Routes/dashboard.route.js'
+import spotify from './Routes/spotify.route.js'
 import { ApiError } from './Utiles/ErrorHandler.js'
 import cookieParser from 'cookie-parser'
 import http from 'http';
 import { initialiseWebSocketServer } from './WebSocket/webSocketServer.js';
 import { RedisClient } from 'redis';
 import { redisClient } from './Database/redisClient.js';
+
 
 const app = express() // create express instance
 const PORT = process.env.PORT || 3000;
@@ -26,6 +29,8 @@ app.use(cors({
 app.use('/api/info', dashboard )
 app.use('/api/user', auth )
 app.use('/api/room', room)
+app.use('/api/auth', spotifyAuth )
+app.use('/api/spotify', spotify)
 
 // catch all the requests that are comming on the endpoints that does not exist
 app.use((req, res) => {

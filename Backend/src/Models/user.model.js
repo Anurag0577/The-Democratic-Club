@@ -1,50 +1,59 @@
 import mongoose from 'mongoose'
 import { passwordHashing, passwordCompare, checkingPasswordStrength } from './../Utiles/passwordManager.js'
+import { type } from 'node:os';
 
-const userSchema = mongoose.Schema({
+const userSchema = new mongoose.Schema(
+  {
     firstname: {
-        type: String,
-        require: [true, 'Firstname is missing!'],
-        minLength: [3, 'The number of letter must be greater than 2.'],
-        maxLength: [20, 'The number of letter must not exceed 20.'],
-        match: [/^[A-Za-z0-9_\s]+$/, 'Make sure you only uses upper letters, small letters, numbers and underscore, nothing other than that will support.'],
-        trim: true
+      type: String,
+      required: [true, 'Firstname is missing!'],
+      minLength: [3, 'Firstname must be greater than 2 letters.'],
+      maxLength: [20, 'Firstname must not exceed 20 letters.'],
+      match: [/^[A-Za-z0-9_\s]+$/, 'Only letters, numbers, spaces, and underscores allowed.'],
+      trim: true,
     },
-    Lastname: {
-        type: String,
-        require: false,
-        minLength: [2, 'Number of letter must not less than 2'],
-        maxLength: [20, 'Number of letters must not greater than 20.'],
-        match: [/^[A-Za-z0-9_\s]+$/, 'Make sure you only uses upper letters, small letters, numbers and underscore, nothing other than that will support.'],
-        trim: true,
+    lastname: {
+      type: String,
+      required: false,
+      minLength: [2, 'Lastname must be at least 2 letters.'],
+      maxLength: [20, 'Lastname must not exceed 20 letters.'],
+      match: [/^[A-Za-z0-9_\s]+$/, 'Only letters, numbers, spaces, and underscores allowed.'],
+      trim: true,
     },
     email: {
-        type: String,
-        require: [true, 'Please write you email address.'],
-        unique: true,
-        match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email'],
-        lowercase:  true
+      type: String,
+      required: [true, 'Please enter your email address.'],
+      unique: true,
+      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email.'],
+      lowercase: true,
+      trim: true,
     },
     password: {
-        type: String,
-        require: [true, 'please enter your password.'],
-        minLength: [6, 'Password must contain atleast 5 letters.'],
-        maxLength: [25, 'Password must not be greater than 25 letters.'],
-        
+      type: String,
+      required: [true, 'Please enter your password.'],
+      minLength: [6, 'Password must contain at least 6 characters.'],
+      // Removed maxLength so hashed passwords (60+ chars) can be saved
     },
     refreshToken: {
-        type: String,
-        expiredAt: Date,
-        createdAt: {
-            type: Date,
-            default: Date.now
-        }
-    }
-},
-{
-    timeStamp: true
-}
-)
+      type: String,
+    },
+    spotify_access_token: {
+      type: String,
+      select: false,
+    },
+    spotify_refresh_token: {
+      type: String,
+      select: false,
+    },
+    spotify_token_expires_at: {
+      type: Date,
+      default: null,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
 
 // middleware that hashed the password before saving into a database

@@ -38,30 +38,6 @@ const joinRoom = asyncHandler(async( req, res ) => {
     const roomCode = req.body.roomCode;
     if(!roomCode) return res.status(400).json(new ApiError(400, 'Server did not get any room code.'))
 
-    // get current user
-    // const userId = req.user.id;
-
-    // find the room with the same room code
-    // const foundRoom = await Room.findOne({roomCode: roomCode})
-
-    // // if room does not found 
-    // if(!foundRoom){
-    //     return res.status(404).json(new ApiError(400, "Does not found any room with the same room code."))
-    // }
-
-    // // if found room please add user to members array.
-    // foundRoom.members.push(userId);
-    // await foundRoom.save(); 
-
-    // YOU CAN DO IT LIKE THIS ALSO -------------------------------------
-    // const updatedRoom = await Room.findOneAndUpdate(
-    //     {roomCode: roomCode},
-    //     {$addToSet: {members: userId}},
-    //     {new: true}  // this is alternate for $push, but it also prevent dulplicate entries.
-    // )
-
-    // if (!updatedRoom) return res.status(404).json(new ApiError(404, 'Room not found.'))
-
     return res.status(200).json(new ApiResponse(200, 'Room exists! User can join the room using Websocket!'))
 }) 
 
