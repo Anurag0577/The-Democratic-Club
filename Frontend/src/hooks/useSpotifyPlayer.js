@@ -36,7 +36,7 @@ export function useSpotifyPlayer() {
         volume: 0.8,
       });
 
-      // 🟢 SDK READY EVENT
+      // SDK READY EVENT
       spotifyPlayer.addListener('ready', ({ device_id }) => {
         console.log('[Spotify SDK] Ready with Device ID:', device_id);
 
@@ -47,7 +47,7 @@ export function useSpotifyPlayer() {
         setDeviceId(device_id);
         setIsReady(true);
 
-        // 2. 🔥 SYNC DIRECTLY WITH ZUSTAND STORE
+        // 2.  SYNC DIRECTLY WITH ZUSTAND STORE
         usePlayerStore.setState({
           deviceId: device_id,
           isReady: true,
@@ -56,7 +56,7 @@ export function useSpotifyPlayer() {
         });
       });
 
-      // 🔴 SDK OFFLINE / NOT READY
+      //  SDK OFFLINE / NOT READY
       spotifyPlayer.addListener('not_ready', ({ device_id }) => {
         console.log('[Spotify SDK] Device offline:', device_id);
         setDeviceId(null);

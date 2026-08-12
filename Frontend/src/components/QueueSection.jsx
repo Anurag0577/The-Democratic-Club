@@ -44,7 +44,7 @@ export default function QueueSection({ isMobile }) {
   }
 
   return (
-    <div className={`border border-white/10 rounded-2xl bg-black/40 backdrop-blur flex flex-col h-full ${isMobile ? 'p-3' : 'p-6'}`}>
+    <div className={`border border-white/10 rounded-2xl bg-black/0 backdrop-blur flex flex-col h-full ${isMobile ? 'p-3' : 'p-6'}`}>
       <div className={isMobile ? 'mb-3' : 'mb-6'}>
         <h3 className={`text-white text-center font-semibold mb-2 md:mb-3 ${isMobile ? 'text-base' : 'text-2xl'}`}>
           Queue ({queue.length})

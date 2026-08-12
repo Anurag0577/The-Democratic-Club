@@ -123,7 +123,7 @@ console.log('RoomCode', roomCode, 'User Id', userrId, 'roomId', roomId)
 
   return (
     <div
-      className="h-screen overflow-hidden flex flex-col transition-[background] duration-700"
+      className="lg:h-screen overflow-hidden flex flex-col transition-[background] duration-700"
       style={{
         backgroundImage: `linear-gradient(180deg, ${accentColor}99 0%, rgba(0,0,0,0.95) 90%, #000 100%)`,
         backgroundColor: '#000',
@@ -135,47 +135,23 @@ console.log('RoomCode', roomCode, 'User Id', userrId, 'roomId', roomId)
       </div>
 
       {/* Main Responsive Container */}
-      <div className="grow overflow-hidden">
+      <div className="grow lg:overflow-hidden">
         {/* DESKTOP VIEW */}
-        <div className="hidden lg:flex h-full gap-4 px-4 pb-4 overflow-hidden">
-          <div className="w-[350px] overflow-hidden">
-            <RoomDetailsCard
-              onLeaveRoom={handleLeaveRoom}
-              onCopyLink={handleCopyLink}
-            />
+        <div className=" flex flex-col lg:flex-row h-full gap-4 px-4 pb-4 overflow-hidden">
+          <div className="h-fit md:h-full w-full lg:w-[350px] overflow-hidden">
+            <RoomDetailsCard/>
           </div>
 
-          <div className="min-w-[450px] overflow-hidden aspect-square">
+          <div className="lg:min-w-[450px] overflow-hidden aspect-square">
             <PlayerSection
             />
           </div>
 
-          <div className="flex-1 min-w-[21rem] shrink-0 overflow-y-auto">
+          <div className="lg:flex-1 lg:min-w-[21rem] shrink-0 overflow-y-auto">
             <QueueSection/>
           </div>
         </div>
 
-        {/* MOBILE VIEW */}
-        <div className="lg:hidden flex flex-col h-full overflow-y-auto px-4 pb-6 space-y-4">
-          <div className="w-full shrink-0">
-            <PlayerSection
-            />
-          </div>
-
-          <div className="w-full shrink-0">
-            <QueueSection
-              isMobile
-            />
-          </div>
-
-          <div className="w-full shrink-0">
-            <RoomDetailsCard
-              isMobile
-              onLeaveRoom={handleLeaveRoom}
-              onCopyLink={handleCopyLink}
-            />
-          </div>
-        </div>
       </div>
     </div>
   );

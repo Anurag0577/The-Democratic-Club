@@ -8,17 +8,17 @@ import useAuthStore from '../store/useAuthStore.js';
 import { useRoomStore } from '../store/useRoomStore.js';
 import { useWebSocketStore } from '../store/useWebSocketStore.js';
 
-export default function RoomDetailsCard({ onLeaveRoom, onCopyLink, isMobile }) {
+export default function RoomDetailsCard() {
   const { roomCode } = useParams();
 
   const user = useAuthStore((state) => state.user);
   const setTotalMember = useRoomStore((state) => state.setTotalMember);
 
-  const roomState = useWebSocketStore((state) => state.roomState)
+  const roomState = useWebSocketStore((state) => state.roomState);
 
   const fetchingRoomDetails = async () => {
     const response = await api.post(
-      '/room/room-details',
+      "/room/room-details",
       { roomCode },
       { withCredentials: true }
     );
@@ -26,15 +26,21 @@ export default function RoomDetailsCard({ onLeaveRoom, onCopyLink, isMobile }) {
     return response?.data?.data;
   };
 
-  const { data: room, isSuccess, isLoading, isError } = useQuery({
-    queryKey: ['roomDetails', roomCode],
+  const {
+    data: room,
+    isSuccess,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["roomDetails", roomCode],
     queryFn: fetchingRoomDetails,
     enabled: Boolean(roomCode),
   });
 
-  const memberCount = roomState.roomCode === roomCode
-    ? roomState.members.length
-    : (room?.members?.length ?? 0);
+  const memberCount =
+    roomState.roomCode === roomCode
+      ? roomState.members.length
+      : (room?.members?.length ?? 0);
 
   useEffect(() => {
     setTotalMember(memberCount);
@@ -53,74 +59,168 @@ export default function RoomDetailsCard({ onLeaveRoom, onCopyLink, isMobile }) {
 
   return (
     <div className="flex flex-col h-full gap-3">
-      <div className="border flex-1 border-white/10 rounded-2xl p-3 md:p-4 bg-black/40 backdrop-blur text-center flex flex-col justify-between items-center">
-        <h3 className={`text-white font-semibold mb-2 md:mb-3 ${isMobile ? 'text-base' : 'text-2xl'}`}>
+
+      {/* ROOM DETAILS */}
+      <div
+        className="
+          border flex-1 border-white/10 rounded-2xl
+          p-3 md:p-4
+          bg-black/0 backdrop-blur
+          text-center flex flex-col
+          justify-between items-center
+        "
+      >
+        <h3 className="text-white font-semibold mb-2 md:mb-3 text-base lg:text-2xl">
           Room Details
         </h3>
 
-        <div className={`${isMobile ? 'space-y-1' : 'space-y-2'} mb-1 md:mb-2`}>
-          <div className="flex items-center justify-center gap-3 md:gap-4">
-            <FaHouse className={`text-white/50 mt-1 shrink-0 ${isMobile ? 'text-base' : 'text-2xl'}`} />
-            <div>
-              <p className={`text-white/50 ${isMobile ? 'text-xs' : 'text-sm'}`}>Room name</p>
-              <p className={`text-white font-medium ${isMobile ? 'text-xs' : 'text-base'}`}>
+        {/* 
+          MOBILE:
+          3 items in one row
+
+          DESKTOP:
+          Your original vertical layout
+        */}
+        <div
+          className="
+            w-full
+            grid grid-cols-3
+            md:flex md:flex-col
+            md:space-y-1 lg:space-y-2
+            mb-1 md:mb-2
+          "
+        >
+
+          {/* ROOM NAME */}
+          <div className="flex items-center justify-center gap-1.5 md:gap-3 lg:gap-4">
+            <FaHouse
+              className="
+                text-white/50
+                mt-0 md:mt-1
+                shrink-0
+                text-sm md:text-base lg:text-2xl
+              "
+            />
+
+            <div className="min-w-0">
+              <p className="text-white/50 text-[9px] md:text-xs lg:text-sm">
+                Room name
+              </p>
+
+              <p className="text-white font-medium text-[10px] md:text-xs lg:text-base truncate max-w-[70px] md:max-w-none">
                 {room.roomName}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-3 md:gap-4">
-            <FaUser className={`text-white/50 mt-1 shrink-0 ${isMobile ? 'text-base' : 'text-2xl'}`} />
-            <div>
-              <p className={`text-white/50 ${isMobile ? 'text-xs' : 'text-sm'}`}>Room host</p>
-              <p className={`text-white font-medium ${isMobile ? 'text-xs' : 'text-base'}`}>
+          {/* HOST */}
+          <div className="flex items-center justify-center gap-1.5 md:gap-3 lg:gap-4">
+            <FaUser
+              className="
+                text-white/50
+                mt-0 md:mt-1
+                shrink-0
+                text-sm md:text-base lg:text-2xl
+              "
+            />
+
+            <div className="min-w-0">
+              <p className="text-white/50 text-[9px] md:text-xs lg:text-sm">
+                Room host
+              </p>
+
+              <p className="text-white font-medium text-[10px] md:text-xs lg:text-base truncate max-w-[70px] md:max-w-none">
                 {room.createdBy?.firstname}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-3 md:gap-4">
-            <FaUsers className={`text-white/50 mt-1 shrink-0 ${isMobile ? 'text-base' : 'text-2xl'}`} />
+          {/* MEMBERS */}
+          <div className="flex items-center justify-center gap-1.5 md:gap-3 lg:gap-4">
+            <FaUsers
+              className="
+                text-white/50
+                mt-0 md:mt-1
+                shrink-0
+                text-sm md:text-base lg:text-2xl
+              "
+            />
+
             <div>
-              <p className={`text-white/50 ${isMobile ? 'text-xs' : 'text-sm'}`}>Total members</p>
-              <p className={`text-white font-medium ${isMobile ? 'text-xs' : 'text-base'}`}>
+              <p className="text-white/50 text-[9px] md:text-xs lg:text-sm">
+                Total members
+              </p>
+
+              <p className="text-white font-medium text-[10px] md:text-xs lg:text-base">
                 {memberCount}
               </p>
             </div>
           </div>
+
         </div>
 
-        {isHost ? (
-          <button
-            onClick={onLeaveRoom}
-            className={`w-full bg-transparent border border-white hover:bg-white text-white hover:text-black font-bold rounded-2xl transition-colors duration-200 cursor-pointer ${isMobile ? 'py-1 text-sm' : 'py-1'}`}
-          >
-            Delete Room
-          </button>
-        ) : (
-          <button
-            onClick={onLeaveRoom}
-            className={`w-full bg-transparent border border-white hover:bg-white text-white hover:text-black font-bold rounded-2xl transition-colors duration-200 cursor-pointer ${isMobile ? 'py-1 text-sm' : 'py-1'}`}
-          >
-            Leave Room
-          </button>
-        )}
-      </div>
-
-      <div className="border flex-1 border-white/10 rounded-2xl p-3 md:p-4 bg-black/40 backdrop-blur flex flex-col justify-center gap-8 items-center">
-        <div className="text-center">
-          <h1 className={`text-white mb-2 ${isMobile ? 'text-base' : 'text-2xl'}`}>Room Code:</h1>
-          <p className={`text-white font-black ${isMobile ? 'text-xl' : 'text-2xl'}`}>{roomCode}</p>
-        </div>
-
+        {/* DELETE / LEAVE */}
         <button
-          onClick={onCopyLink}
-          className={`w-full bg-transparent border border-white hover:bg-white text-white hover:text-black flex justify-center items-center gap-3 font-bold rounded-2xl transition-colors duration-200 cursor-pointer ${isMobile ? 'py-1 text-sm' : 'py-1'}`}
+          className="
+            w-full
+            bg-transparent
+            border border-white
+            hover:bg-white
+            text-white hover:text-black
+            font-bold
+            rounded-2xl
+            transition-colors duration-200
+            cursor-pointer
+            py-1
+            text-xs md:text-sm lg:text-sm
+          "
         >
-          <FaCopy className={isMobile ? 'text-sm' : 'text-lg'} />
-          Copy
+          {isHost ? "Delete Room" : "Leave Room"}
         </button>
       </div>
+
+
+      {/* ROOM CODE */}
+      <div
+        className="
+          border flex-1 border-white/10 rounded-2xl
+          p-3 md:p-4
+          bg-black/0 backdrop-blur
+          flex md:flex-col md:gap-8
+          items-center
+          md:items-center justify-around
+        "
+      >
+        
+          <h1 className="text-white mb-0 md:mb-2 text-sm md:text-base lg:text-2xl">
+            Room Code:
+          </h1>
+              <p className="text-white font-black text-lg md:text-xl lg:text-4xl">
+                {roomCode}
+              </p>
+            <button
+              className="
+              min-w-25
+                md:w-full
+                bg-transparent
+                border border-white
+                hover:bg-white
+                text-white hover:text-black
+                flex justify-center items-center
+                gap-2 md:gap-3
+                font-bold
+                rounded-2xl
+                transition-colors duration-200
+                cursor-pointer
+                py-1
+                text-xs md:text-sm lg:text-sm
+              "
+            >
+              <FaCopy className="text-xs md:text-sm lg:text-lg" />
+              Copy
+            </button>
+      </div>
+
     </div>
   );
 }

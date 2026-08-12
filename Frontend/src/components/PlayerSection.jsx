@@ -10,12 +10,13 @@ import { usePlayerStore } from '../store/usePlayerStore';
 import { useRoomStore } from '../store/useRoomStore';
 import { useSpotifyPlayer } from "../hooks/useSpotifyPlayer.js"
 import api from '../api/axios.js';
+import track_img from '../assets/Images/track_img.png'
 
 export default function PlayerSection() {
-  // 1. Live Spotify Web Playback SDK state
+
   const { player, deviceId, isReady } = useSpotifyPlayer();
 
-  // 2. Zustand Global Store State & Actions
+
   const currentSong = usePlayerStore((state) => state.currentSong);
   const isPlaying = usePlayerStore((state) => state.isPlaying);
   const setIsPlaying = usePlayerStore((state) => state.setIsPlaying);
@@ -23,7 +24,7 @@ export default function PlayerSection() {
   const setIsSdkReady = usePlayerStore((state) => state.setIsSdkReady);
   const accentColor = useRoomStore((state) => state.accentColor);
 
-  // 3. Keep global Zustand store in sync with local SDK status
+
   useEffect(() => {
     setIsSdkReady(isReady);
   }, [isReady, setIsSdkReady]);
@@ -34,17 +35,15 @@ export default function PlayerSection() {
     }
   }, [deviceId, setStoreDeviceId]);
 
-  // 4. Auto-play effect: Triggers ONLY when SDK is connected locally and ready
   useEffect(() => {
     if (!currentSong) return;
 
-    // CRITICAL FIX: Strictly block execution if SDK is not locally ready or lacks a live deviceId
     if (!isReady || !deviceId) {
       console.debug('[PlayerSection] Playback deferred: SDK not ready locally or missing live deviceId.', {
         isReady,
         deviceId,
       });
-      return; // Stop here and wait for isReady/deviceId to update
+      return;
     }
 
     const spotifyUri = currentSong.spotifyUri;
@@ -81,7 +80,6 @@ export default function PlayerSection() {
     };
   }, [currentSong, isReady, deviceId]);
 
-  // 5. Keep isPlaying state synchronized with Spotify's actual SDK playback state
   useEffect(() => {
     if (!player) return;
 
@@ -94,17 +92,17 @@ export default function PlayerSection() {
     return () => player.removeListener('player_state_changed', handleStateChange);
   }, [player, setIsPlaying]);
 
-  // 6. Play / Pause toggle handler
   function handleTogglePlay() {
     if (!player) return;
+    console.log('hanldeTogglePlay pressed!')
     player.togglePlay().catch((err) => {
       console.error('[PlayerSection] togglePlay failed:', err);
     });
   }
 
   return (
-    <div className="border border-white/10 rounded-2xl overflow-hidden h-full flex flex-col relative bg-black">
-    {isReady ? <p className='text-white'>Player ready</p> : <p className='text-white'  >Connecting to Spotify...</p>}
+    <div className="border border-white/10 rounded-2xl overflow-hidden h-full flex flex-col relative bg-black/0">
+
       {
         (currentSong) ? (
           <>
@@ -247,9 +245,22 @@ export default function PlayerSection() {
       </div>
       </>
         ) : (
-            <div className='flex flex-col justify-center items-center text-white h-full'>
-              <h1 className=' text-4xl '>Nothing Playing</h1>
-              <p>This room is waiting for the first song.</p>
+            <div className='flex flex-col justify-center items-center text-white h-full min-h-120'>
+              <div className="perspective-[1000px]">
+                <img
+                  src={track_img}
+                  className="h-45 lg:h-65 transform-3d rotate-x-6 hover:rotate-y-22 hover:-rotate-x-6 transition-transform duration-300"
+                />
+              </div>
+              <h1 className=' text-4xl '>Nothing Playing!</h1>
+              <p className='text-sm text-gray-400 mb-3'>You have to add tracks in a Queue to play music.</p>
+              {isReady ? (
+                <p className="text-white px-5 rounded-xl bg-green-700">Player ready! You can play music.</p>
+              ) : (
+                <p className="text-white px-5 animate-pulse rounded-xl bg-red-600">
+                  Wait, getting your player ready...
+                </p>
+              )}
             </div>
         )
       }
