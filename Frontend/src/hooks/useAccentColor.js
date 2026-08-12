@@ -10,16 +10,25 @@ export function useAccentColor(imageUrl, fallback = '#C9A961') {
   const [accentColor, setAccentColor] = useState(fallback);
 
   useEffect(() => {
+    setAccentColor(fallback);
+
     let cancelled = false;
 
+    if (!imageUrl) {
+      setAccentColor(fallback);
+      return;
+    }
+
     extractAccentColor(imageUrl, fallback).then((color) => {
-      if (!cancelled) setAccentColor(color);
+      if (!cancelled) {
+        setAccentColor(color);
+      }
     });
 
     return () => {
       cancelled = true;
     };
-  }, [imageUrl]); // re-runs automatically whenever the song image changes
+  }, [imageUrl, fallback]); // re-runs automatically whenever the song image changes
 
   return accentColor;
 }

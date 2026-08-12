@@ -5,23 +5,111 @@ import {
   FaStepBackward,
   FaStepForward,
 } from 'react-icons/fa';
+import { useEffect } from 'react';
 import { usePlayerStore } from '../store/usePlayerStore';
 import { useRoomStore } from '../store/useRoomStore';
+import { useSpotifyPlayer } from "../hooks/useSpotifyPlayer.js"
+import api from '../api/axios.js';
 
 export default function PlayerSection() {
+  // 1. Live Spotify Web Playback SDK state
+  const { player, deviceId, isReady } = useSpotifyPlayer();
 
-  // zustand state and actions
-  const currentSong = usePlayerStore((state) => state.currentSong)
-  const isPlaying = usePlayerStore((state) => state.isPlaying)
-  const accentColor = useRoomStore((state) => state.accentColor)
+  // 2. Zustand Global Store State & Actions
+  const currentSong = usePlayerStore((state) => state.currentSong);
+  const isPlaying = usePlayerStore((state) => state.isPlaying);
+  const setIsPlaying = usePlayerStore((state) => state.setIsPlaying);
+  const setStoreDeviceId = usePlayerStore((state) => state.setDeviceId);
+  const setIsSdkReady = usePlayerStore((state) => state.setIsSdkReady);
+  const accentColor = useRoomStore((state) => state.accentColor);
+
+  // 3. Keep global Zustand store in sync with local SDK status
+  useEffect(() => {
+    setIsSdkReady(isReady);
+  }, [isReady, setIsSdkReady]);
+
+  useEffect(() => {
+    if (deviceId) {
+      setStoreDeviceId(deviceId);
+    }
+  }, [deviceId, setStoreDeviceId]);
+
+  // 4. Auto-play effect: Triggers ONLY when SDK is connected locally and ready
+  useEffect(() => {
+    if (!currentSong) return;
+
+    // CRITICAL FIX: Strictly block execution if SDK is not locally ready or lacks a live deviceId
+    if (!isReady || !deviceId) {
+      console.debug('[PlayerSection] Playback deferred: SDK not ready locally or missing live deviceId.', {
+        isReady,
+        deviceId,
+      });
+      return; // Stop here and wait for isReady/deviceId to update
+    }
+
+    const spotifyUri = currentSong.spotifyUri;
+
+    if (!spotifyUri) {
+      console.warn('[PlayerSection] The selected song has no valid Spotify URI/track ID.', currentSong);
+      return;
+    }
+
+    let isCancelled = false;
+
+    async function startPlayback() {
+      try {
+        const resp = await api.put(
+          '/spotify/play',
+          { deviceId, spotifyUri },
+          { withCredentials: true }
+        );
+
+        if (!isCancelled) {
+          console.log('[PlayerSection] Playback request sent successfully:', resp?.status ?? 204);
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          console.error('[PlayerSection] Failed to start playback:', err);
+        }
+      }
+    }
+
+    startPlayback();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentSong, isReady, deviceId]);
+
+  // 5. Keep isPlaying state synchronized with Spotify's actual SDK playback state
+  useEffect(() => {
+    if (!player) return;
+
+    function handleStateChange(state) {
+      if (!state) return;
+      setIsPlaying(!state.paused);
+    }
+
+    player.addListener('player_state_changed', handleStateChange);
+    return () => player.removeListener('player_state_changed', handleStateChange);
+  }, [player, setIsPlaying]);
+
+  // 6. Play / Pause toggle handler
+  function handleTogglePlay() {
+    if (!player) return;
+    player.togglePlay().catch((err) => {
+      console.error('[PlayerSection] togglePlay failed:', err);
+    });
+  }
 
   return (
     <div className="border border-white/10 rounded-2xl overflow-hidden h-full flex flex-col relative bg-black">
+    {isReady ? <p className='text-white'>Player ready</p> : <p className='text-white'  >Connecting to Spotify...</p>}
       {
         (currentSong) ? (
           <>
           <img
-        src={currentSong.imageUrl}
+        src={currentSong.media_img || currentSong.thumbnail_img}
         alt=""
         className="absolute inset-0 w-full h-full object-contain object-center"
       />
@@ -37,22 +125,9 @@ export default function PlayerSection() {
 
       <div className="p-4 md:p-8 flex-grow flex flex-col justify-between overflow-y-auto relative z-10">
 
-        {/* <div className="flex justify-center mb-3 md:mb-6">
-          <div className="relative">
-            <img
-              src={currentSong.imageUrl}
-              alt={currentSong.title}
-              className="w-32 h-32 md:w-54 md:h-54 lg:w-56 lg:h-56 rounded-lg object-cover shadow-2xl"
-            />
-            <div className="absolute inset-0 rounded-lg bg-black/10"></div>
-          </div>
-        </div> */}
-
-        {/* Album Art with vinyl peeking from behind — spins while playing, sleeve stays still */}
         <div className="flex justify-center mb-3 md:mb-6">
           <div className="relative w-32 h-32 md:w-54 md:h-54 lg:w-56 lg:h-56">
 
-            {/* Vinyl disc — positioned behind, offset right so it peeks past the sleeve edge */}
             <div
               className="absolute"
               style={{ left: '50%', top: 0, width: '100%', height: '100%' }}
@@ -77,10 +152,8 @@ export default function PlayerSection() {
                   </clipPath>
                 </defs>
 
-                {/* Base disc, colored from the extracted accent */}
                 <circle cx="50" cy="50" r="48" fill={accentColor} />
 
-                {/* Grooves — crisp concentric rings */}
                 {[44, 40, 36, 32, 28, 24, 20.5].map((r) => (
                   <circle
                     key={r}
@@ -93,13 +166,11 @@ export default function PlayerSection() {
                   />
                 ))}
 
-                {/* Glossy sheen */}
                 <circle cx="50" cy="50" r="48" fill="url(#vinylSheen)" />
 
-                {/* Center label */}
                 <circle cx="50" cy="50" r="17" fill="#111" />
                 <image
-                  href={currentSong.imageUrl}
+                  href={currentSong.media_img || currentSong.thumbnail_img}
                   x="34"
                   y="34"
                   width="32"
@@ -108,17 +179,15 @@ export default function PlayerSection() {
                   preserveAspectRatio="xMidYMid slice"
                 />
 
-                {/* Spindle hole */}
                 <circle cx="50" cy="50" r="2.2" fill="#000" />
                 <circle cx="50" cy="50" r="2.2" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="0.4" />
               </svg>
             </div>
 
-            {/* Album sleeve — stays still, sits in front */}
             <div className="absolute inset-0 rounded-md overflow-hidden shadow-2xl z-10 bg-black">
               <img
-                src={currentSong.imageUrl}
-                alt={currentSong.title}
+                src={currentSong.media_img || currentSong.thumbnail_img}
+                alt={currentSong.track_name}
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-black/10"></div>
@@ -135,9 +204,9 @@ export default function PlayerSection() {
 
         <div className="text-center mb-3 md:mb-6">
           <h2 className="text-white text-base md:text-2lg lg:text-4xl font-semibold mb-2 md:mb-4 text-shadow-2xl">
-            {currentSong.title}
+            {currentSong.track_name}
           </h2>
-          <p className='text-white text-shadow-2xl'>{currentSong.artist}</p>
+          <p className='text-white text-shadow-2xl'>{currentSong.artist_name}</p>
         </div>
 
         <div className="mb-4 md:mb-6">
@@ -145,13 +214,13 @@ export default function PlayerSection() {
             <div
               className="bg-white h-full transition-all duration-300"
               style={{
-                width: `${(currentSong.currentTime / currentSong.totalTime) * 100}%`,
+                width: `${(10 / currentSong.song_dur) * 100}%`,
               }}
             ></div>
           </div>
           <div className="flex justify-between text-white/60 text-xs">
-            <span>{currentSong.currentTimeFormatted}</span>
-            <span>{currentSong.totalTimeFormatted}</span>
+            <span>0:21</span>
+            <span>3:10</span>
           </div>
         </div>
 
@@ -159,6 +228,7 @@ export default function PlayerSection() {
           <div></div>
           <div className="flex justify-center">
             <button
+              onClick={handleTogglePlay}
               className="bg-white hover:bg-white text-black rounded-full p-3 md:p-4 text-lg md:text-2xl transition-colors duration-200 shadow-lg cursor-pointer"
               title={isPlaying ? 'Pause' : 'Play'}
             >

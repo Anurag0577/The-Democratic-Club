@@ -1,9 +1,19 @@
 import {Room} from '../Models/room.model.js'
 import {User} from '../Models/user.model.js'
+import {ensureValidSpotifyToken} from '../Controllers/spotifyAuth.controller.js'
 import 'dotenv/config'
 
 const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
+
+const DEFAULT_FETCH_TIMEOUT = 10000; // 10s
+
+function fetchWithTimeout(url, options = {}, timeout = DEFAULT_FETCH_TIMEOUT) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  const finalOptions = { ...options, signal: controller.signal };
+  return fetch(url, finalOptions).finally(() => clearTimeout(id));
+}
 
 const getSpotifyAccessToken = async (userId, roomId) => {
     const roomDetail = await Room.findById(roomId).select('createdBy members');
@@ -43,7 +53,7 @@ const getSpotifyAccessToken = async (userId, roomId) => {
   
     console.log('Access token expired for host', roomHostId, '- refreshing');
   
-    const refreshResponse = await fetch('https://accounts.spotify.com/api/token', {
+    const refreshResponse = await fetchWithTimeout('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -53,7 +63,7 @@ const getSpotifyAccessToken = async (userId, roomId) => {
         grant_type: 'refresh_token',
         refresh_token: roomHostDetail.spotify_refresh_token,
       }),
-    });
+    }, DEFAULT_FETCH_TIMEOUT);
   
     const data = await refreshResponse.json();
   
@@ -95,11 +105,11 @@ const getSpotifyAccessToken = async (userId, roomId) => {
         include_external: 'audio',
       });
   
-      const response = await fetch(`${baseSpotifySearchURL}?${params.toString()}`, {
+      const response = await fetchWithTimeout(`${baseSpotifySearchURL}?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${spotify_access_token}`,
         },
-      });
+      }, DEFAULT_FETCH_TIMEOUT);
   
       if (!response.ok) {
         console.error('[Spotify Search] Failed:', response.status);
@@ -114,7 +124,7 @@ const getSpotifyAccessToken = async (userId, roomId) => {
         song_dur: track.duration_ms,
         track_id: track.id,
         track_name: track.name,
-        track_uri: track.uri
+        spotifyUri: track.uri
       }));
   
       return res.json(tracks);
@@ -133,5 +143,70 @@ const getSpotifyAccessToken = async (userId, roomId) => {
     }
   };
 
+const getSpotifyProfile = async (req, res) => {
+  const userId = req.user.id;
+  const user = await User.findById(userId).select(
+    '+spotify_access_token +spotify_refresh_token spotify_token_expires_at'
+  );
 
-  export {handleSearch};
+  const token = await ensureValidSpotifyToken(user);
+  if (!token) {
+    return res.status(400).json({ error: 'Spotify not connected' });
+  }
+
+  try {
+    const response = await fetchWithTimeout('https://api.spotify.com/v1/me', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }, DEFAULT_FETCH_TIMEOUT);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[Spotify Profile] Failed:', response.status, errorText);
+      return res.status(response.status).json({ error: errorText || 'Failed to fetch Spotify profile' });
+    }
+
+    const data = await response.json();
+    return res.json(data);
+  } catch (err) {
+    console.error('[Spotify Profile] Exception:', err);
+    if (err.name === 'AbortError') {
+      return res.status(504).json({ error: 'Spotify request timed out' });
+    }
+    return res.status(502).json({ error: err.message || 'Network error' });
+  }
+};
+
+// backend: new route
+const playTrack = async (req, res) => {
+  const { deviceId, spotifyUri } = req.body;
+  const userId = req.user.id; // host playing on their own device
+
+  console.log('[Spotify] deviceId received from frontend:', deviceId);
+
+  const user = await User.findById(userId).select(
+    '+spotify_access_token +spotify_refresh_token spotify_token_expires_at'
+  );
+  const token = await ensureValidSpotifyToken(user);
+  if (!token) return res.status(400).json({ error: 'Spotify not connected' });
+
+  const response = await fetchWithTimeout(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ uris: [spotifyUri] }),
+  }, DEFAULT_FETCH_TIMEOUT);
+
+  if (!response.ok && response.status !== 204) {
+    const err = await response.text();
+    console.error('[Spotify] Play failed:', response.status, err);
+    return res.status(response.status).json({ error: err });
+  }
+
+  res.status(204).send();
+};
+
+export {handleSearch, getSpotifyProfile, playTrack};

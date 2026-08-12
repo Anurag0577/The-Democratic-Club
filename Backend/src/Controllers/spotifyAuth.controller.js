@@ -5,6 +5,15 @@ import jwt from 'jsonwebtoken'
 const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 
+const DEFAULT_FETCH_TIMEOUT = 10000; // 10s
+
+function fetchWithTimeout(url, options = {}, timeout = DEFAULT_FETCH_TIMEOUT) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  const finalOptions = { ...options, signal: controller.signal };
+  return fetch(url, finalOptions).finally(() => clearTimeout(id));
+}
+
 
 // This MUST match exactly what's registered in your Spotify Developer Dashboard
 // and it must point to YOUR BACKEND callback route, not the frontend.
@@ -61,7 +70,7 @@ const getSpotifyToken = async (req, res) => {
   const userId = decoded.id ?? decoded._id ?? decoded.userId; // match whatever your JWT payload actually calls it
 
   try {
-    const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
+    const tokenResponse = await fetchWithTimeout('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -72,7 +81,7 @@ const getSpotifyToken = async (req, res) => {
         redirect_uri: REDIRECT_URI,
         grant_type: 'authorization_code',
       }),
-    });
+    }, DEFAULT_FETCH_TIMEOUT);
 
     const data = await tokenResponse.json();
 
@@ -118,7 +127,7 @@ async function ensureValidSpotifyToken(user) {
 
   console.log('[Spotify] Access token expired for user', user._id, '- refreshing');
 
-  const refreshResponse = await fetch('https://accounts.spotify.com/api/token', {
+  const refreshResponse = await fetchWithTimeout('https://accounts.spotify.com/api/token', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -128,7 +137,7 @@ async function ensureValidSpotifyToken(user) {
       grant_type: 'refresh_token',
       refresh_token: user.spotify_refresh_token,
     }),
-  });
+  }, DEFAULT_FETCH_TIMEOUT);
 
   const data = await refreshResponse.json();
 
@@ -166,4 +175,27 @@ const checkSpotifyAuthStatus = async (req, res) => {
   return res.json({ connected: false });
 };
 
-export { spotifyAuthentication, getSpotifyToken, checkSpotifyAuthStatus };
+
+
+// spotify.controller.js — new export
+const getPlaybackToken = async (req, res) => {
+  const userId = req.user.id;
+
+  const user = await User.findById(userId).select(
+    '+spotify_access_token +spotify_refresh_token spotify_token_expires_at'
+  );
+
+  const token = await ensureValidSpotifyToken(user); // the helper from earlier
+
+  if (!token) {
+    return res.status(400).json({ error: 'Spotify not connected' });
+  }
+
+  return res.json({ access_token: token });
+};
+
+
+
+
+
+export { spotifyAuthentication, getSpotifyToken, checkSpotifyAuthStatus, getPlaybackToken, ensureValidSpotifyToken };

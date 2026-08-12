@@ -86,9 +86,12 @@ console.log('RoomCode', roomCode, 'User Id', userrId, 'roomId', roomId)
   }, [roomCode, user?.id, joinRoom, leaveRoom, roomId]);
 
   // Current Song State with gradient accent
-  
-  const accentColor = useAccentColor(currentSong.imageUrl);
-  setAccentColor(accentColor)
+  const songImageUrl = currentSong?.media_img || currentSong?.thumbnail_img || currentSong?.imageUrl;
+  const accentColor = useAccentColor(songImageUrl);
+
+  useEffect(() => {
+    setAccentColor(accentColor);
+  }, [accentColor, setAccentColor]);
 
   // Handlers
   const handleLeaveRoom = () => {
