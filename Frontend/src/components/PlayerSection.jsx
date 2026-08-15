@@ -11,6 +11,8 @@ import { useRoomStore } from '../store/useRoomStore';
 import { useSpotifyPlayer } from "../hooks/useSpotifyPlayer.js"
 import api from '../api/axios.js';
 import track_img from '../assets/Images/track_img.png'
+import { useWebSocketStore } from '../store/useWebSocketStore.js';
+import { PlaybackTimeline } from './PlaybackTimeline.jsx';
 
 export default function PlayerSection() {
 
@@ -23,6 +25,11 @@ export default function PlayerSection() {
   const setStoreDeviceId = usePlayerStore((state) => state.setDeviceId);
   const setIsSdkReady = usePlayerStore((state) => state.setIsSdkReady);
   const accentColor = useRoomStore((state) => state.accentColor);
+  const setPlayerStateChanged = usePlayerStore((state) => state.setPlayerStateChanged)
+
+    const queue = useWebSocketStore((state) => state.roomState.queue) || [];
+  const setCurrentSong = usePlayerStore((state) => state.setCurrentSong);
+  const sdkPlayer = usePlayerStore((state) => state.sdkPlayer);
 
 
   useEffect(() => {
@@ -86,6 +93,13 @@ export default function PlayerSection() {
     function handleStateChange(state) {
       if (!state) return;
       setIsPlaying(!state.paused);
+      const stateInfo = {
+        duration: state.duration,
+        position: state.position,
+        paused: state.paused
+      }
+      setPlayerStateChanged(stateInfo)
+      console.log('THIS IS THE VALUE OF STATE ------', state)
     }
 
     player.addListener('player_state_changed', handleStateChange);
@@ -98,6 +112,39 @@ export default function PlayerSection() {
     player.togglePlay().catch((err) => {
       console.error('[PlayerSection] togglePlay failed:', err);
     });
+  }
+
+
+  async function handlePlaySong() {
+    if (queue.length === 0) return;
+
+    if (sdkPlayer) {
+      try {
+        console.log('[QueueSection] Unlocking browser audio via activateElement()...');
+        await sdkPlayer.activateElement();
+        await sdkPlayer.setVolume(0.8);
+      } catch (err) {
+        console.error('[QueueSection] activateElement or setVolume failed:', err);
+      }
+    } else {
+      console.warn('[QueueSection] sdkPlayer instance is missing from usePlayerStore!');
+    }
+
+    console.log('[QueueSection] Active deviceId at click time:', deviceId);
+
+
+    const nextTrack = queue[0];
+    setCurrentSong(nextTrack);
+
+  
+
+
+    useWebSocketStore.setState((state) => ({
+      roomState: {
+        ...state.roomState,
+        queue: state.roomState.queue.slice(1),
+      },
+    }));
   }
 
   return (
@@ -207,20 +254,7 @@ export default function PlayerSection() {
           <p className='text-white text-shadow-2xl'>{currentSong.artist_name}</p>
         </div>
 
-        <div className="mb-4 md:mb-6">
-          <div className="bg-white/10 h-1 rounded-full overflow-hidden mb-2 md:mb-3">
-            <div
-              className="bg-white h-full transition-all duration-300"
-              style={{
-                width: `${(10 / currentSong.song_dur) * 100}%`,
-              }}
-            ></div>
-          </div>
-          <div className="flex justify-between text-white/60 text-xs">
-            <span>0:21</span>
-            <span>3:10</span>
-          </div>
-        </div>
+        <PlaybackTimeline/>
 
         <div className="grid grid-cols-3 items-center w-full">
           <div></div>
@@ -237,6 +271,7 @@ export default function PlayerSection() {
             <button
               className="text-white/60 hover:text-white text-base md:text-2xl transition-colors duration-200 cursor-pointer"
               title="Next"
+              onClick={handlePlaySong}
             >
               <FaStepForward />
             </button>
@@ -261,6 +296,11 @@ export default function PlayerSection() {
                   Wait, getting your player ready...
                 </p>
               )}
+
+              <button className='w-full md:w-auto py-2 md:px-10 cursor-pointer border rounded-4xl mt-5 hover:bg-white hover:text-black' onClick={handlePlaySong}>
+                Start Playing Song
+              </button>
+
             </div>
         )
       }

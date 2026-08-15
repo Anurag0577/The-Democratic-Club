@@ -7,12 +7,11 @@ export function SearchTrack() {
 
     
     
-    const [searchString, setSearchString] = useState(""); // live input value
-    const [submittedQuery, setSubmittedQuery] = useState(""); // value actually searched
+    const [searchString, setSearchString] = useState(""); 
+    const [submittedQuery, setSubmittedQuery] = useState(""); 
     const [dropdownOpen, setDropdownOpen] = useState(false);
     
-    
-    // zustand states and variable
+
     const roomState = useWebSocketStore(state => state.roomState);
     const currentUserId = useWebSocketStore(state => state.currentUserId)
     const currentRoomId = useWebSocketStore(state => state.currentRoomId)
@@ -30,7 +29,7 @@ async function fetchSearchTrack() {
     }
   );
 
-  return res.data; // axios already parsed the JSON body
+  return res.data;
 }
 
 const {
