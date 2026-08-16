@@ -117,15 +117,20 @@ const getSpotifyAccessToken = async (userId, roomId) => {
       }
   
       const data = await response.json();
-      const tracks = (data.tracks?.items ?? []).map((track) => ({
-        artist_name: track.artists?.[0]?.name ?? 'Unknown artist',
-        thumbnail_img: track.album?.images?.[2]?.url ?? track.album?.images?.[0]?.url,
-        media_img: track.album?.images?.[0]?.url,
-        song_dur: track.duration_ms,
-        track_id: track.id,
-        track_name: track.name,
-        spotifyUri: track.uri
-      }));
+      const tracks = (data.tracks?.items ?? [])
+        .filter(Boolean)
+        .map((track) => ({
+          track_id: track.id,
+          track_name: track.name ?? 'Untitled Track',
+          artist_name: track.artists?.map((a) => a.name).join(', ') || 'Unknown artist',
+          media_img: track.album?.images?.[0]?.url ?? null,
+          thumbnail_img: track.album?.images?.[2]?.url ?? track.album?.images?.[0]?.url ?? null,
+          song_dur: track.duration_ms ?? 0,
+          spotifyUri: track.uri,
+          upvote_count: 0,
+          added_at: Date.now(),
+          added_by: userId,
+        }));
   
       return res.json(tracks);
     } catch (err) {

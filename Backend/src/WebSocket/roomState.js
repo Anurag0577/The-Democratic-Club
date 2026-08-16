@@ -12,7 +12,6 @@ async function getQueue(roomCode, roomId) {
   
   if (sortedTrackIds.length !== 0) {
     const sortedQueue = await redisClient.hmGet(tracksKey(roomCode), sortedTrackIds);
-    // Filter out potential nulls and parse JSON
     return sortedQueue
       .filter((item) => item !== null)
       .map((item) => JSON.parse(item));
@@ -65,11 +64,33 @@ async function setQueue(roomCode, track, task, roomId) {
       String(track.track_id),
       JSON.stringify(track)
     );
+
+    // upadating the queue in mongoDB
+    const queueInfo = await Queue.findOneAndUpdate(
+      { room: roomId },
+      { $push: { tracks: track } },
+      { 
+        returnDocument: 'after', // returns the updated document
+      }
+    );
+    console.log('this is updatedQueue after adding song: ', queueInfo)
   }
 
   if (task === 'remove') {
     pipeline.zRem(roomKey(roomCode), String(track.track_id));
     pipeline.hDel(tracksKey(roomCode), String(track.track_id));
+
+    // romove track from the mongoDB
+    const updatedQueue = await Queue.findOneAndUpdate(
+      { room: roomId },
+      { 
+        $pull: { 
+          tracks: { track_id: String(track.track_id) } 
+        } 
+      },
+      { returnDocument: 'after' }
+    );
+    console.log('this is updatedQueue after remove song: ', updatedQueue)
   }
 
   await pipeline.exec();
@@ -77,39 +98,62 @@ async function setQueue(roomCode, track, task, roomId) {
 }
 
 // -------------- UPVOTE SONG --------------
-async function upvoteSong(track_id, roomCode, roomId) {
+async function upvoteSong(track_id, roomCode, roomId, upvoted_by) {
   const trackId = String(track_id);
 
-  // 1. Increment score in ZSET
+  const rawTrackInfo = await redisClient.hGet(tracksKey(roomCode), trackId);
+  if (!rawTrackInfo) {
+    return await getQueue(roomCode, roomId);
+  }
+
+  const trackInfo = JSON.parse(rawTrackInfo);
+  trackInfo.upvote_by = trackInfo.upvote_by || [];
+
+  const alreadyUpvoted = trackInfo.upvote_by.includes(upvoted_by);
+  if (alreadyUpvoted) {
+    console.log('[upvoteSong] User already upvoted, skipping:', upvoted_by);
+    return await getQueue(roomCode, roomId);
+  }
+
   await redisClient.zIncrBy(roomKey(roomCode), 1, trackId);
 
-  // 2. Fetch, increment, and re-save in HASH
-  const rawTrackInfo = await redisClient.hGet(tracksKey(roomCode), trackId);
-  if (rawTrackInfo) {
-    const trackInfo = JSON.parse(rawTrackInfo);
-    trackInfo.upvote_count = (trackInfo.upvote_count || 0) + 1;
-    await redisClient.hSet(tracksKey(roomCode), trackId, JSON.stringify(trackInfo));
-  }
+  trackInfo.upvote_count = (trackInfo.upvote_count || 0) + 1;
+  trackInfo.upvote_by.push(upvoted_by);
+
+  await redisClient.hSet(tracksKey(roomCode), trackId, JSON.stringify(trackInfo));
 
   return await getQueue(roomCode, roomId);
 }
 
 // -------------- REMOVE UPVOTE --------------
-async function removeUpvoteSong(track_id, roomCode, roomId) {
+async function removeUpvoteSong(track_id, roomCode, roomId, removedUpvote_by) {
   const trackId = String(track_id);
 
-  // 1. Decrement score in ZSET
-  await redisClient.zIncrBy(roomKey(roomCode), -1, trackId);
-
-  // 2. Fetch, decrement, and re-save in HASH
   const rawTrackInfo = await redisClient.hGet(tracksKey(roomCode), trackId);
-  if (rawTrackInfo) {
-    const trackInfo = JSON.parse(rawTrackInfo);
-    trackInfo.upvote_count = Math.max(0, (trackInfo.upvote_count || 0) - 1);
-    await redisClient.hSet(tracksKey(roomCode), trackId, JSON.stringify(trackInfo));
+  if (!rawTrackInfo) {
+    return await getQueue(roomCode, roomId);
   }
 
-  return await getQueue(roomCode, roomId);
+  const trackInfo = JSON.parse(rawTrackInfo);
+  trackInfo.upvote_by = trackInfo.upvote_by || [];
+
+  console.log("UPVOTED_BY", trackId.upvote_by )
+  console.log('removeUPVOTE REQUEST BY', removedUpvote_by)
+  const hadUpvoted = trackInfo.upvote_by.includes(removedUpvote_by);
+  if (!hadUpvoted) {
+    console.log('[removeUpvoteSong] User never upvoted, skipping:', removedUpvote_by);
+    return await getQueue(roomCode, roomId); 
+  }
+
+  await redisClient.zIncrBy(roomKey(roomCode), -1, trackId);
+
+  trackInfo.upvote_count = Math.max(0, (trackInfo.upvote_count || 0) - 1);
+  trackInfo.upvote_by = trackInfo.upvote_by.filter((id) => id !== removedUpvote_by);
+
+  await redisClient.hSet(tracksKey(roomCode), trackId, JSON.stringify(trackInfo));
+  const fetchingGetQueue = await getQueue(roomCode, roomId);
+  console.log("This is fetchingGetQueue",fetchingGetQueue)
+  return fetchingGetQueue;
 }
 
 export { getQueue, setQueue, upvoteSong, removeUpvoteSong };

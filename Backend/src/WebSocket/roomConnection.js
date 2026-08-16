@@ -42,7 +42,7 @@ function broadCastToRoom(roomCode, payload){
     // convert this payload into string
     const message =  JSON.stringify(payload)
     const clients = roomConnections.get(roomCode);
-    console.log('This is all the clients in the room: ', clients)
+    // console.log('This is all the clients in the room: ', clients)
 
     clients.forEach(client => {
         if(client.readyState === WebSocket.OPEN){

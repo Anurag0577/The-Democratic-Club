@@ -5,7 +5,7 @@ import {
   FaStepBackward,
   FaStepForward,
 } from 'react-icons/fa';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePlayerStore } from '../store/usePlayerStore';
 import { useRoomStore } from '../store/useRoomStore';
 import { useSpotifyPlayer } from "../hooks/useSpotifyPlayer.js"
@@ -25,7 +25,7 @@ export default function PlayerSection() {
   const setStoreDeviceId = usePlayerStore((state) => state.setDeviceId);
   const setIsSdkReady = usePlayerStore((state) => state.setIsSdkReady);
   const accentColor = useRoomStore((state) => state.accentColor);
-  const setPlayerStateChanged = usePlayerStore((state) => state.setPlayerStateChanged)
+  const setPlayerStateChangedLocal = usePlayerStore((state) => state.setPlayerStateChangedLocal)
 
     const queue = useWebSocketStore((state) => state.roomState.queue) || [];
   const setCurrentSong = usePlayerStore((state) => state.setCurrentSong);
@@ -93,18 +93,51 @@ export default function PlayerSection() {
     function handleStateChange(state) {
       if (!state) return;
       setIsPlaying(!state.paused);
+      console.log('--- HANDLESTATECHANGE RUNNING ----')
       const stateInfo = {
         duration: state.duration,
         position: state.position,
         paused: state.paused
       }
-      setPlayerStateChanged(stateInfo)
+      setPlayerStateChangedLocal(stateInfo)
       console.log('THIS IS THE VALUE OF STATE ------', state)
     }
 
     player.addListener('player_state_changed', handleStateChange);
     return () => player.removeListener('player_state_changed', handleStateChange);
-  }, [player, setIsPlaying]);
+  }, [player, setIsPlaying, setPlayerStateChangedLocal]);
+
+  // send playback status updates to the server — but ONLY on real transitions
+  // (paused toggled or track changed), not on every per-second position tick
+  // the SDK fires during normal playback.
+  const playerStateChanged = usePlayerStore((state) => state.playerStateChanged);
+  const updatePlaybackStatus = useWebSocketStore((state) => state.updatePlaybackStatus);
+  const roomCode = useWebSocketStore((state) => state.roomState.roomCode);
+  const lastBroadcastRef = useRef({ paused: null, duration: null });
+
+  useEffect(() => {
+    if (!playerStateChanged) return;
+
+    // Ignore updates that originated from the server to prevent loops
+    if (playerStateChanged.source && playerStateChanged.source !== 'local') return;
+
+    const { paused, duration } = playerStateChanged;
+    const last = lastBroadcastRef.current;
+
+    // position is intentionally excluded — it changes every tick during playback
+    const isRealTransition = last.paused !== paused || last.duration !== duration;
+
+    if (!isRealTransition) return;
+
+    lastBroadcastRef.current = { paused, duration };
+
+    updatePlaybackStatus(
+      playerStateChanged.duration,
+      playerStateChanged.position,
+      playerStateChanged.paused,
+      roomCode
+    );
+  }, [playerStateChanged, updatePlaybackStatus, roomCode]);
 
   function handleTogglePlay() {
     if (!player) return;

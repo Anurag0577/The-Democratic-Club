@@ -3,6 +3,7 @@ import { BiSolidUpvote } from 'react-icons/bi';
 import { SearchTrack } from './SearchTrack.jsx';
 import { useWebSocketStore } from '../store/useWebSocketStore.js';
 import { usePlayerStore } from '../store/usePlayerStore.js';
+import { UpvoteBtn } from './UpvoteBtn.jsx';
 
 export default function QueueSection({ isMobile }) {
   const queue = useWebSocketStore((state) => state.roomState.queue) || [];
@@ -10,10 +11,14 @@ export default function QueueSection({ isMobile }) {
   const isSdkReady = usePlayerStore((state) => state.isSdkReady);
   const sdkPlayer = usePlayerStore((state) => state.sdkPlayer);
   const deviceId = usePlayerStore((state) => state.deviceId);
+  const removeSong = useWebSocketStore((state) => state.removeSong)
+  const roomCode = useWebSocketStore((state) => state.roomState.roomCode)
+  const currentRoomId = useWebSocketStore((state) => state.currentRoomId)
+  const songChanged = useWebSocketStore((state) => state.songChanged)
 
   async function handlePlaySong() {
     if (queue.length === 0) return;
-
+    console.log("THIS IS QUEUE", queue)
     if (sdkPlayer) {
       try {
         console.log('[QueueSection] Unlocking browser audio via activateElement()...');
@@ -32,8 +37,8 @@ export default function QueueSection({ isMobile }) {
     const nextTrack = queue[0];
     setCurrentSong(nextTrack);
 
-  
-
+    // now we have to tell the backend that the current song is changed
+    songChanged(nextTrack, roomCode)
 
     useWebSocketStore.setState((state) => ({
       roomState: {
@@ -41,6 +46,9 @@ export default function QueueSection({ isMobile }) {
         queue: state.roomState.queue.slice(1),
       },
     }));
+
+    // we have to send a REMOVE_SONG message to backend.
+    removeSong(nextTrack, roomCode, currentRoomId)
   }
 
   return (
@@ -79,21 +87,8 @@ export default function QueueSection({ isMobile }) {
                     </p>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-1 md:gap-3 flex-shrink-0">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                    className="text-white/60 hover:text-red-500 transition-colors duration-200 cursor-pointer"
-                  >
-                    <BiSolidUpvote
-                      className={song.isLiked ? 'text-red-500' : ''}
-                      size={isMobile ? 15 : 20}
-                    />
-                  </button>
-                  <span className="text-white/60 text-xs">{song.likes || 0}</span>
-                </div>
+                <UpvoteBtn song={song}/>
+                
               </div>
             ))}
           </div>

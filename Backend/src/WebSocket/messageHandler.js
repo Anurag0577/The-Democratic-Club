@@ -2,7 +2,8 @@ import { queryObjects } from 'v8';
 import { Room } from '../Models/room.model.js'
 import {messageType} from '../WebSocket/messageType.js'
 import { joinRoom, leaveRoom, broadCastToRoom } from './roomConnection.js'
-import { getQueue, setQueue, upvoteSong } from './roomState.js'
+import { getQueue, setQueue, upvoteSong, removeUpvoteSong } from './roomState.js'
+import { type } from 'os';
 
 async function messageHandler(socket, data){
     try {
@@ -102,8 +103,7 @@ async function messageHandler(socket, data){
                 const { track, roomCode, roomId } = data.payload ?? {};
                 if (!track || !roomCode || !roomId) break;
 
-                const trackWithDefaults = { upvote_count: 0, ...track };
-                const updateQueue = await setQueue(roomCode, trackWithDefaults, 'add', roomId);
+                const updateQueue = await setQueue(roomCode, track, 'add', roomId);
 
                 broadCastToRoom(roomCode, {
                     type: messageType.QUEUE_UPDATE,
@@ -128,30 +128,56 @@ async function messageHandler(socket, data){
 
             // ------------- ADD UPVOTE [ roomId, track_id, roomCode ]
             case messageType.ADD_UPVOTE : {
-    
-                const track_id = data.track_id;
-                const roomCode = data.roomCode;
-                const roomId = data.roomId;  
-                
-                const updatedQueue = upvoteSong(track_id, roomCode, roomId);
 
+                const track_id = data?.payload?.track_id;
+                const roomCode = data?.payload?.roomCode;
+                const roomId = data?.payload?.roomId;
+                const upvoted_by = data?.payload?.upvoted_by
+
+                const updatedQueue = await upvoteSong(track_id, roomCode, roomId, upvoted_by);
+                console.log('This is UPDATED QUEUE AFTER UPVOTE', updatedQueue)
                 broadCastToRoom(roomCode, {
                     type: messageType.QUEUE_UPDATE,
-                    queue: updatedQueue
-                })
+                    payload: { queue: updatedQueue }
+                });
+
+                break;
             }
 
             // ------------- REMOVE UPVOTE [ room_id, track_id, roomCode ]
             case messageType.REMOVE_UPVOTE : {
-                const track_id = data.track_id;
-                const roomCode = data.roomCode;
-                const roomId = data.roomId;  
+                const track_id = data?.payload?.track_id;
+                const roomCode = data?.payload?.roomCode;
+                const roomId = data?.payload?.roomId;
+                const removedUpvote_by = data?.payload?.removedUpvote_by;
 
-                const updatedQueue = removeUpvoteSong(track_id, roomCode, roomId);
+                const updatedQueue = await removeUpvoteSong(track_id, roomCode, roomId, removedUpvote_by);
 
                 broadCastToRoom(roomCode, {
                     type: messageType.QUEUE_UPDATE,
-                    queue: updatedQueue
+                    payload: { queue: updatedQueue }
+                });
+
+                break;
+            }
+
+            // ------------ CHANGE SONG [ track, roomCode ] ------------
+            case messageType.SONG_CHANGED : {
+                const {track, roomCode} = data.payload || {};
+
+                broadCastToRoom(roomCode, {
+                    type:messageType.NOW_PLAYING,
+                    payload: {track: track}
+                })
+            }
+
+            // -------------- UPDATE PAYBACK STATUS -------------------------
+            case messageType.UPADATE_PLAYBACK_STATUS : {
+                const {duration, position, paused, roomCode} = data?.payload || {};
+
+                broadCastToRoom(roomCode, {
+                    type: messageType.PLAYBACK_STATUS,
+                    payload: {duration, position, paused}
                 })
             }
             

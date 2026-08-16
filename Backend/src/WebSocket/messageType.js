@@ -8,10 +8,11 @@ const messageType = {
     REMOVE_SONG: 'REMOVE_SONG',
     ADD_UPVOTE : 'ADD_UPVOTE',
     REMOVE_UPVOTE : 'REMOVE_UPVOTE',
-    SKIP_SONG : 'SKIP_SONG', // may be there will be no need to use this
     PLAY: 'PLAY',
     PAUSE : 'PAUSE',
     SONG_ENDED: 'SONG_ENDED',
+    SONG_CHANGED: 'SONG_CHANGED',
+    UPADATE_PLAYBACK_STATUS: 'UPDATE_PLAYBACK_STATUS',
 
 
     

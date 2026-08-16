@@ -12,7 +12,8 @@ const messageType = {
     PLAY: 'PLAY',
     PAUSE : 'PAUSE',
     SONG_ENDED: 'SONG_ENDED',
-
+    SONG_CHANGED: 'SONG_CHANGED',
+    UPADATE_PLAYBACK_STATUS: 'UPDATE_PLAYBACK_STATUS',
 
     
     // SERVER => CLIENT

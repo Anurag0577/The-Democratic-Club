@@ -7,10 +7,12 @@ const queueScheme = mongoose.Schema({
     tracks: [{
         type: {
             track_id: {type: String, required: true, uniqued: true},
-            album_img: {type: String, required: true},
-            album_name: {type: String, required: true},
-            album_uri: {type: String, required: true},
-            duration_ms: {type:Number, required: true},
+            artist_name: {type: String, required: true},
+            media_img: {type: String, required: true},
+            thumbnail_img: {type: String, required: true},
+            track_name: {type: String, required: true},
+            spotifyUri: {type: String, required: true},
+            song_dur: {type:Number, required: true},
             added_by: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
             added_at: {type: Date, default: Date.now },
             upvote_count: {type: Number, default: 0 },
@@ -30,11 +32,14 @@ queueScheme.methods.addTrack = async function(trackInfo, userId){
     // add the track in the queue
     this.tracks.push({
             track_id : trackInfo.track_id,
-            album_img : trackInfo.album_img,
-            album_name : trackInfo.album_name,
-            album_uri : trackInfo.album_uri,
-            duration_ms : trackInfo.duration_ms,
+            artist_name: trackInfo.artist_name,
+            media_img : trackInfo.media_img,
+            thumbnail_img: trackInfo.thumbnail_img,
+            track_name : trackInfo.track_name,
+            spotifyUri : trackInfo.spotifyUri,
+            song_dur : trackInfo.song_dur,
             added_by : userId,
+            upvote_count : trackInfo.upvote_count,
             upvoted_by: []
     })
 }
