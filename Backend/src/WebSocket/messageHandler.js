@@ -4,6 +4,7 @@ import {messageType} from '../WebSocket/messageType.js'
 import { joinRoom, leaveRoom, broadCastToRoom } from './roomConnection.js'
 import { getQueue, setQueue, upvoteSong, removeUpvoteSong } from './roomState.js'
 import { type } from 'os';
+import { setPlaybackAnchor, getPlaybackAnchor } from './playbackAnchor.js';
 
 async function messageHandler(socket, data){
     try {
@@ -42,12 +43,16 @@ async function messageHandler(socket, data){
 
                 const members = updatedRoom.members;
                 const queue = await getQueue(updatedRoom.roomCode, updatedRoom._id);
+
+                const playbackAnchor = await getPlaybackAnchor(roomCode);
+
                 const response = JSON.stringify({
                     type: messageType.CURRENT_ROOM_STATE,
                     payload : {
                         queue,
                         members,
-                        room: updatedRoom
+                        room: updatedRoom,
+                        playbackAnchor
                     }
                 })
                 console.log('Backend ->  frontend : ', response)
@@ -165,6 +170,14 @@ async function messageHandler(socket, data){
             case messageType.SONG_CHANGED : {
                 const {track, roomCode} = data.payload || {};
 
+                await setPlaybackAnchor(roomCode, {
+                    track,
+                    durationMs: track?.song_dur ??  0,
+                    positionMs: 0,
+                    isPlaying: true,
+                });
+            
+
                 broadCastToRoom(roomCode, {
                     type:messageType.NOW_PLAYING,
                     payload: {track: track}
@@ -172,13 +185,19 @@ async function messageHandler(socket, data){
                 break;
             }
 
-            // -------------- UPDATE PAYBACK STATUS -------------------------
             case messageType.UPADATE_PLAYBACK_STATUS : {
-                const {duration, position, paused, roomCode} = data?.payload || {};
-
+                const {duration, position, paused, roomCode, track} = data?.payload || {};
+            
+                await setPlaybackAnchor(roomCode, {
+                    track,
+                    durationMs: duration,
+                    positionMs: position,
+                    isPlaying: !paused,
+                });
+            
                 broadCastToRoom(roomCode, {
                     type: messageType.PLAYBACK_STATUS,
-                    payload: {duration, position, paused}
+                    payload: {duration, position, paused, track}
                 })
                 break;
             }

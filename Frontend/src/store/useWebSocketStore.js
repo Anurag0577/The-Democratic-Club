@@ -1,7 +1,7 @@
 import {create} from "zustand";
 import { websocketService } from "../services/websocketServices.js";
 import {messageType} from "../Utilities/messageType.js"
-import { usePlayerStore } from "./usePlayerStore.js";
+import { usePlayerStore } from "../store/usePlayerStore.js";
 
 const useWebSocketStore = create((set, get) => ({
     // states
@@ -98,6 +98,7 @@ const useWebSocketStore = create((set, get) => ({
 
         websocketService.onMessage(messageType.CURRENT_ROOM_STATE, (payload) => {
             console.log("current room status", payload);
+
             set((state) => ({
                 roomState: {
                     ...state.roomState,
@@ -106,6 +107,24 @@ const useWebSocketStore = create((set, get) => ({
                     roomCode: payload.room?.roomCode ?? state.roomState.roomCode,
                 },
             }));
+
+            // Hydrate the player from the playback anchor so a late-joiner
+            // or a page reload doesn't start from a blank/null player.
+            const anchor = payload.playbackAnchor;
+            if (anchor?.track) {
+                const positionMs = anchor.isPlaying
+                    ? anchor.positionMs + (Date.now() - anchor.updatedAt)
+                    : anchor.positionMs;
+
+                usePlayerStore.getState().setCurrentSong(anchor.track);
+                usePlayerStore.getState().setIsPlaying(anchor.isPlaying);
+                usePlayerStore.getState().setPlayerStateChangedRemote({
+                    duration: anchor.durationMs,
+                    position: positionMs,
+                    paused: !anchor.isPlaying,
+                });
+            }
+
             console.log('-- this is the value of current roomState', get().roomState)
         });
 
@@ -146,8 +165,8 @@ const useWebSocketStore = create((set, get) => ({
         websocketService.sendMessage(messageType.PAUSE, {});
     },
 
-    updatePlaybackStatus: (duration, position, paused, roomCode) => {
-        websocketService.sendMessage(messageType.UPADATE_PLAYBACK_STATUS, {duration, position, paused, roomCode})
+    updatePlaybackStatus: (duration, position, paused, roomCode, track) => {
+        websocketService.sendMessage(messageType.UPADATE_PLAYBACK_STATUS, {duration, position, paused, roomCode, track})
     },
 
 }))

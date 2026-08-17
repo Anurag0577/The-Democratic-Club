@@ -141,9 +141,10 @@ export default function PlayerSection() {
       playerStateChanged.duration,
       playerStateChanged.position,
       playerStateChanged.paused,
-      roomCode
+      roomCode,
+      currentSong   // ← added
     );
-  }, [playerStateChanged, updatePlaybackStatus, roomCode]);
+  }, [playerStateChanged, updatePlaybackStatus, roomCode, currentSong]);
 
   function handleTogglePlay() {
     if (!player) return;
@@ -299,7 +300,7 @@ async function handlePlaySong() {
         <PlaybackTimeline/>
 
 
-        {(createdBy._id === user.id) ? (
+        {(createdBy?._id === user?.id) ? (
                 <div className="grid grid-cols-3 items-center w-full">
                   <div></div>
                   <div className="flex justify-center">

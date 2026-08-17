@@ -1,4 +1,4 @@
-import redisClient from '../redisClient.js'; 
+import {redisClient} from '../Database/redisClient.js' 
 
 const ANCHOR_TTL_SECONDS = 3600; 
 
@@ -9,8 +9,8 @@ function anchorKey(roomCode) {
 async function setPlaybackAnchor(roomCode, { track, durationMs, positionMs, isPlaying }) {
   const anchor = {
     track,
-    duration,
-    position,
+    durationMs,
+    positionMs,
     isPlaying,
     updatedAt: Date.now(),
   };
