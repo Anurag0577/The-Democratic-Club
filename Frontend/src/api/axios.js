@@ -1,6 +1,7 @@
 import axios from 'axios'
 const SKIP_SOME_PATH = ['/login', '/signup'];
-const URL = 'http://127.0.0.1:3000/api';
+// const URL = 'http://127.0.0.1:3000/api';
+const URL = 'https://backend-hidden-comet-6630.fly.dev/api';
 
 const api = axios.create({
     baseURL: URL,

@@ -8,7 +8,8 @@ import { toast } from 'sonner';
 
 function redirectToSpotify() {
   const token = localStorage.getItem('accessToken'); // wherever you store it
-  window.location.href = `http://127.0.0.1:3000/api/auth/login?token=${token}`;
+  // window.location.href = `http://127.0.0.1:3000/api/auth/login?token=${token}`;
+  window.location.href = `https://backend-hidden-comet-6630.fly.dev/api/auth/login?token=${token}`;
 }
 
 export function Dashboard() {
