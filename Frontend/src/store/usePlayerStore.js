@@ -16,10 +16,19 @@ export const usePlayerStore = create((set, get) => ({
   // To avoid broadcast loops, mark whether the update originated locally or remotely.
   // Local changes come from the SDK/player and should be sent to the server.
   // Remote changes come from the server and should not be re-broadcast.
-  setPlayerStateChangedLocal: (obj) => set({ playerStateChanged: { ...obj, source: 'local' } }),
-  setPlayerStateChangedRemote: (obj) => set({ playerStateChanged: { ...obj, source: 'remote' } }),
+  setPlayerStateChangedLocal: (obj) => set((state) => ({
+    playerStateChanged: { ...obj, source: 'local' },
+    isPlaying: typeof obj?.paused === 'boolean' ? !obj.paused : state.isPlaying,
+  })),
+  setPlayerStateChangedRemote: (obj) => set((state) => ({
+    playerStateChanged: { ...obj, source: 'remote' },
+    isPlaying: typeof obj?.paused === 'boolean' ? !obj.paused : state.isPlaying,
+  })),
   // Backward-compatible setter: defaults to local origin
-  setPlayerStateChanged: (obj) => set({ playerStateChanged: { ...obj, source: 'local' } }),
+  setPlayerStateChanged: (obj) => set((state) => ({
+    playerStateChanged: { ...obj, source: 'local' },
+    isPlaying: typeof obj?.paused === 'boolean' ? !obj.paused : state.isPlaying,
+  })),
   setCurrentSong: (track) => set({ currentSong: track }),
   setIsPlaying: (status) => set({ isPlaying: status }),
   setSdkPlayer: (player) => set({ sdkPlayer: player }),

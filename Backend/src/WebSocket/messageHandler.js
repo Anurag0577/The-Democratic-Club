@@ -169,6 +169,7 @@ async function messageHandler(socket, data){
                     type:messageType.NOW_PLAYING,
                     payload: {track: track}
                 })
+                break;
             }
 
             // -------------- UPDATE PAYBACK STATUS -------------------------
@@ -179,6 +180,7 @@ async function messageHandler(socket, data){
                     type: messageType.PLAYBACK_STATUS,
                     payload: {duration, position, paused}
                 })
+                break;
             }
             
         }

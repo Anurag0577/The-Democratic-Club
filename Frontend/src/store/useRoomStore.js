@@ -4,13 +4,10 @@ const useRoomStore = create((set, get) => ({
     accentColor: '#800000' ,
     queue: [],
     room: {
-        roomName: `Anurag's Room`,
-        createdDate: 'May 12, 2024',
-        hostName: 'Armaan Singh',
-        totalMembers: 24,
-        nowPlayingTime: '0:21 / 3:10',
+        _id : '1234',
         roomCode: '1234',
-        shareLink: 'thedemocraticclub.com/room/1234',
+        roomName: `Anurag's Room`,
+        createdBy: 'Armaan Singh'
     },
     totalMember: 1,
     

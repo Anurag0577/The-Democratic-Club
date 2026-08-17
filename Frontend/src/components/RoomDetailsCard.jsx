@@ -10,7 +10,7 @@ import { useWebSocketStore } from '../store/useWebSocketStore.js';
 
 export default function RoomDetailsCard() {
   const { roomCode } = useParams();
-
+  const setRoom = useRoomStore((state) => state.setRoom)
   const user = useAuthStore((state) => state.user);
   const setTotalMember = useRoomStore((state) => state.setTotalMember);
 
@@ -43,8 +43,18 @@ export default function RoomDetailsCard() {
       : (room?.members?.length ?? 0);
 
   useEffect(() => {
+    if (!room) return;
+
+    const roomObj = {
+      _id: room?._id,
+      roomName: room?.roomName,
+      roomCode: room?.roomCode,
+      createdBy: room?.createdBy,
+    };
+    console.log("---------||||||---------", roomObj)
+    setRoom(roomObj);
     setTotalMember(memberCount);
-  }, [memberCount, setTotalMember]);
+  }, [memberCount, setTotalMember, room]);
 
   if (!roomCode) {
     return <div>We did not find any room code from the URL.</div>;

@@ -148,7 +148,7 @@ const useWebSocketStore = create((set, get) => ({
 
     updatePlaybackStatus: (duration, position, paused, roomCode) => {
         websocketService.sendMessage(messageType.UPADATE_PLAYBACK_STATUS, {duration, position, paused, roomCode})
-    }
+    },
 
 }))
 

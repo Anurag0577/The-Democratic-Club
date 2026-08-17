@@ -1,5 +1,6 @@
 import { FaPlus } from 'react-icons/fa';
 import { BiSolidUpvote } from 'react-icons/bi';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SearchTrack } from './SearchTrack.jsx';
 import { useWebSocketStore } from '../store/useWebSocketStore.js';
 import { usePlayerStore } from '../store/usePlayerStore.js';
@@ -63,34 +64,45 @@ export default function QueueSection({ isMobile }) {
       <div className={`flex-grow overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${isMobile ? 'mb-2' : 'mb-6'}`}>
         {queue.length > 0 ? (
           <div className={isMobile ? 'space-y-2' : 'space-y-3'}>
-            {queue.map((song, index) => (
-              <div
-                key={song.track_id || index}
-                className="bg-white/5 hover:bg-white/10 rounded-lg cursor-pointer transition-colors duration-200 flex items-center gap-2 md:gap-3 group py-1 px-3"
-              >
-                <img
-                  src={song.thumbnail_img || song.media_img}
-                  alt={song.track_name || 'Track cover'}
-                  className="rounded object-cover flex-shrink-0 w-8 h-8"
-                />
+            <AnimatePresence initial={false}>
+              {queue.map((song) => (
+                <motion.div
+                  key={song.track_id}
+                  layout
+                  layoutId={song.track_id}
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  transition={{
+                    layout: { type: 'spring', stiffness: 380, damping: 32 },
+                    opacity: { duration: 0.15 },
+                  }}
+                  className="bg-white/5 hover:bg-white/10 rounded-lg cursor-pointer transition-colors duration-200 flex items-center gap-2 md:gap-3 group py-1 px-3"
+                >
+                  <img
+                    src={song.thumbnail_img || song.media_img}
+                    alt={song.track_name || 'Track cover'}
+                    className="rounded object-cover flex-shrink-0 w-8 h-8"
+                  />
 
-                <div className="flex-grow min-w-0">
-                  <p className={`text-white font-semibold truncate ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                    {song.track_name}
-                  </p>
-                  <div className="flex gap-x-4">
-                    <p className="text-white/60 truncate text-xs">
-                      {song.artist_name}
+                  <div className="flex-grow min-w-0">
+                    <p className={`text-white font-semibold truncate ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                      {song.track_name}
                     </p>
-                    <p className="text-white/60 truncate text-xs">
-                      {msToTime(song.song_dur)}
-                    </p>
+                    <div className="flex gap-x-4">
+                      <p className="text-white/60 truncate text-xs">
+                        {song.artist_name}
+                      </p>
+                      <p className="text-white/60 truncate text-xs">
+                        {msToTime(song.song_dur)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <UpvoteBtn song={song}/>
-                
-              </div>
-            ))}
+                  <UpvoteBtn song={song}/>
+
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         ) : (
           <div className="text-white flex flex-col justify-center items-center h-full">

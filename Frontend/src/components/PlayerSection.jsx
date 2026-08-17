@@ -7,13 +7,13 @@ import {
 } from 'react-icons/fa';
 import { useEffect, useRef } from 'react';
 import { usePlayerStore } from '../store/usePlayerStore';
-import { useRoomStore } from '../store/useRoomStore';
 import { useSpotifyPlayer } from "../hooks/useSpotifyPlayer.js"
 import api from '../api/axios.js';
 import track_img from '../assets/Images/track_img.png'
 import { useWebSocketStore } from '../store/useWebSocketStore.js';
 import { PlaybackTimeline } from './PlaybackTimeline.jsx';
-
+import useAuthStore from '../store/useAuthStore.js'
+import { useRoomStore } from '../store/useRoomStore.js';
 export default function PlayerSection() {
 
   const { player, deviceId, isReady } = useSpotifyPlayer();
@@ -32,7 +32,10 @@ export default function PlayerSection() {
   const setCurrentSong = usePlayerStore((state) => state.setCurrentSong);
   const sdkPlayer = usePlayerStore((state) => state.sdkPlayer);
   const currentRoomId = useWebSocketStore((state) => state.currentRoomId)
+  const user = useAuthStore((state) => state.user);
+  const createdBy = useRoomStore((state) => state.room.createdBy)
 
+  console.log("||user||", user, "||createdBy||", createdBy)
 
   useEffect(() => {
     setIsSdkReady(isReady);
@@ -103,6 +106,7 @@ export default function PlayerSection() {
       }
       setPlayerStateChangedLocal(stateInfo)
       console.log('THIS IS THE VALUE OF STATE ------', state)
+      console.log('THIS IS PLAYING SONG ISPLAYING', isPlaying)
     }
 
     player.addListener('player_state_changed', handleStateChange);
@@ -294,27 +298,36 @@ async function handlePlaySong() {
 
         <PlaybackTimeline/>
 
-        <div className="grid grid-cols-3 items-center w-full">
+
+        {(createdBy._id === user.id) ? (
+                <div className="grid grid-cols-3 items-center w-full">
+                  <div></div>
+                  <div className="flex justify-center">
+                    <button
+                      onClick={handleTogglePlay}
+                      className="bg-white hover:bg-white text-black rounded-full p-3 md:p-4 text-lg md:text-2xl transition-colors duration-200 shadow-lg cursor-pointer"
+                      title={isPlaying ? 'Pause' : 'Play'}
+                    >
+                      {isPlaying ? <FaPause /> : <FaPlay className="ml-0.5" />}
+                    </button>
+                  </div>
+                  <div className="flex justify-start pl-4 md:pl-8">
+                    <button
+                      className="text-white/60 hover:text-white text-base md:text-2xl transition-colors duration-200 cursor-pointer"
+                      title="Next"
+                      onClick={handlePlaySong}
+                    >
+                      <FaStepForward />
+                    </button>
+                  </div>
+                </div>
+        ) : (
           <div></div>
-          <div className="flex justify-center">
-            <button
-              onClick={handleTogglePlay}
-              className="bg-white hover:bg-white text-black rounded-full p-3 md:p-4 text-lg md:text-2xl transition-colors duration-200 shadow-lg cursor-pointer"
-              title={isPlaying ? 'Pause' : 'Play'}
-            >
-              {isPlaying ? <FaPause /> : <FaPlay className="ml-0.5" />}
-            </button>
-          </div>
-          <div className="flex justify-start pl-4 md:pl-8">
-            <button
-              className="text-white/60 hover:text-white text-base md:text-2xl transition-colors duration-200 cursor-pointer"
-              title="Next"
-              onClick={handlePlaySong}
-            >
-              <FaStepForward />
-            </button>
-          </div>
-        </div>
+        )}
+        
+
+
+
       </div>
       </>
         ) : (
