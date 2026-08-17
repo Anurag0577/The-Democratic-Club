@@ -26,10 +26,12 @@ export default function PlayerSection() {
   const setIsSdkReady = usePlayerStore((state) => state.setIsSdkReady);
   const accentColor = useRoomStore((state) => state.accentColor);
   const setPlayerStateChangedLocal = usePlayerStore((state) => state.setPlayerStateChangedLocal)
-
+  const songChanged = useWebSocketStore((state) => state.songChanged)
+  const removeSong = useWebSocketStore((state)=> state.removeSong)
     const queue = useWebSocketStore((state) => state.roomState.queue) || [];
   const setCurrentSong = usePlayerStore((state) => state.setCurrentSong);
   const sdkPlayer = usePlayerStore((state) => state.sdkPlayer);
+  const currentRoomId = useWebSocketStore((state) => state.currentRoomId)
 
 
   useEffect(() => {
@@ -148,9 +150,9 @@ export default function PlayerSection() {
   }
 
 
-  async function handlePlaySong() {
+async function handlePlaySong() {
     if (queue.length === 0) return;
-
+    console.log("THIS IS QUEUE", queue)
     if (sdkPlayer) {
       try {
         console.log('[QueueSection] Unlocking browser audio via activateElement()...');
@@ -169,8 +171,8 @@ export default function PlayerSection() {
     const nextTrack = queue[0];
     setCurrentSong(nextTrack);
 
-  
-
+    // now we have to tell the backend that the current song is changed
+    songChanged(nextTrack, roomCode)
 
     useWebSocketStore.setState((state) => ({
       roomState: {
@@ -178,6 +180,9 @@ export default function PlayerSection() {
         queue: state.roomState.queue.slice(1),
       },
     }));
+
+    // we have to send a REMOVE_SONG message to backend.
+    removeSong(nextTrack, roomCode, currentRoomId)
   }
 
   return (
