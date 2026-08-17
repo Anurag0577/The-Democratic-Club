@@ -92,70 +92,7 @@ export default function PlayerSection() {
     };
   }, [currentSong, isReady, deviceId]);
 
-  useEffect(() => {
-    if (!player) return;
-
-    function handleStateChange(state) {
-      if (!state) return;
-      setIsPlaying(!state.paused);
-      console.log('--- HANDLESTATECHANGE RUNNING ----')
-      const stateInfo = {
-        duration: state.duration,
-        position: state.position,
-        paused: state.paused
-      }
-      setPlayerStateChangedLocal(stateInfo)
-      console.log('THIS IS THE VALUE OF STATE ------', state)
-      console.log('THIS IS PLAYING SONG ISPLAYING', isPlaying)
-    }
-
-    player.addListener('player_state_changed', handleStateChange);
-    return () => player.removeListener('player_state_changed', handleStateChange);
-  }, [player, setIsPlaying, setPlayerStateChangedLocal]);
-
-  // send playback status updates to the server — but ONLY on real transitions
-  // (paused toggled or track changed), not on every per-second position tick
-  // the SDK fires during normal playback.
-  const playerStateChanged = usePlayerStore((state) => state.playerStateChanged);
-  const updatePlaybackStatus = useWebSocketStore((state) => state.updatePlaybackStatus);
-  const roomCode = useWebSocketStore((state) => state.roomState.roomCode);
-  const lastBroadcastRef = useRef({ paused: null, duration: null });
-
-  useEffect(() => {
-    if (!playerStateChanged) return;
-
-    // Ignore updates that originated from the server to prevent loops
-    if (playerStateChanged.source && playerStateChanged.source !== 'local') return;
-
-    const { paused, duration } = playerStateChanged;
-    const last = lastBroadcastRef.current;
-
-    // position is intentionally excluded — it changes every tick during playback
-    const isRealTransition = last.paused !== paused || last.duration !== duration;
-
-    if (!isRealTransition) return;
-
-    lastBroadcastRef.current = { paused, duration };
-
-    updatePlaybackStatus(
-      playerStateChanged.duration,
-      playerStateChanged.position,
-      playerStateChanged.paused,
-      roomCode,
-      currentSong   // ← added
-    );
-  }, [playerStateChanged, updatePlaybackStatus, roomCode, currentSong]);
-
-  function handleTogglePlay() {
-    if (!player) return;
-    console.log('hanldeTogglePlay pressed!')
-    player.togglePlay().catch((err) => {
-      console.error('[PlayerSection] togglePlay failed:', err);
-    });
-  }
-
-
-async function handlePlaySong() {
+  async function handlePlaySong() {
     if (queue.length === 0) return;
     console.log("THIS IS QUEUE", queue)
     if (sdkPlayer) {
@@ -188,6 +125,99 @@ async function handlePlaySong() {
 
     // we have to send a REMOVE_SONG message to backend.
     removeSong(nextTrack, roomCode, currentRoomId)
+  }
+
+  // Keep a ref pointing at the LATEST handlePlaySong on every render.
+  // The SDK listener effect below only re-subscribes when player/user/createdBy
+  // change — NOT when queue changes — so calling handlePlaySong directly from
+  // inside that effect would use a stale, possibly-empty queue. Calling through
+  // this ref always reaches the current closure instead.
+  const handlePlaySongRef = useRef(handlePlaySong);
+  useEffect(() => {
+    handlePlaySongRef.current = handlePlaySong;
+  });
+
+  // Ref to detect natural track-end vs manual pause
+  const previousStateRef = useRef(null);
+
+  useEffect(() => {
+    if (!player) return;
+
+    function handleStateChange(state) {
+      if (!state) return;
+      setIsPlaying(!state.paused);
+
+      const stateInfo = {
+        duration: state.duration,
+        position: state.position,
+        paused: state.paused
+      }
+      setPlayerStateChangedLocal(stateInfo)
+
+      // --- Detect natural track end ---
+      const prev = previousStateRef.current;
+      const isHost = createdBy?._id === user?.id;
+
+      const trackEnded =
+        isHost &&
+        prev &&
+        !prev.paused &&           // it WAS playing
+        state.paused &&           // now it's paused
+        state.position === 0 &&   // at the very start
+        state.track_window?.previous_tracks?.length > (prev.track_window?.previous_tracks?.length ?? 0);
+        // previous_tracks grew, confirming Spotify itself advanced/finished the track
+
+      if (trackEnded) {
+        console.log('[PlayerSection] Track ended naturally — advancing queue.');
+        handlePlaySongRef.current(); // call through ref, never stale
+      }
+
+      previousStateRef.current = state;
+    }
+
+    player.addListener('player_state_changed', handleStateChange);
+    return () => player.removeListener('player_state_changed', handleStateChange);
+  }, [player, setIsPlaying, setPlayerStateChangedLocal, createdBy, user]);
+
+  // send playback status updates to the server — but ONLY on real transitions
+  // (paused toggled or track changed), not on every per-second position tick
+  // the SDK fires during normal playback.
+  const playerStateChanged = usePlayerStore((state) => state.playerStateChanged);
+  const updatePlaybackStatus = useWebSocketStore((state) => state.updatePlaybackStatus);
+  const roomCode = useWebSocketStore((state) => state.roomState.roomCode);
+  const lastBroadcastRef = useRef({ paused: null, duration: null });
+
+  useEffect(() => {
+    if (!playerStateChanged) return;
+
+    // Ignore updates that originated from the server to prevent loops
+    if (playerStateChanged.source && playerStateChanged.source !== 'local') return;
+
+    const { paused, duration } = playerStateChanged;
+    const last = lastBroadcastRef.current;
+
+    // position is intentionally excluded — it changes every tick during playback
+    const isRealTransition = last.paused !== paused || last.duration !== duration;
+
+    if (!isRealTransition) return;
+
+    lastBroadcastRef.current = { paused, duration };
+
+    updatePlaybackStatus(
+      playerStateChanged.duration,
+      playerStateChanged.position,
+      playerStateChanged.paused,
+      roomCode,
+      currentSong
+    );
+  }, [playerStateChanged, updatePlaybackStatus, roomCode, currentSong]);
+
+  function handleTogglePlay() {
+    if (!player) return;
+    console.log('hanldeTogglePlay pressed!')
+    player.togglePlay().catch((err) => {
+      console.error('[PlayerSection] togglePlay failed:', err);
+    });
   }
 
   return (
