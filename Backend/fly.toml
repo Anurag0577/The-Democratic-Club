@@ -4,9 +4,10 @@
 #
 
 app = 'backend-hidden-comet-6630'
-primary_region = 'bom'
+primary_region = 'sin'
 
 [build]
+
 [http_service]
   internal_port = 3000
   force_https = true
