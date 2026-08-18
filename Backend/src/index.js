@@ -17,10 +17,12 @@ import { redisClient } from './Database/redisClient.js';
 
 const app = express() // create express instance
 const PORT = process.env.PORT || 3000;
+
 app.use(cookieParser())
 app.use(express.json()); // important for body parsing
 app.use(cors({
-    origin: 'http://127.0.0.1:5173',
+    // origin: 'http://127.0.0.1:5173',
+    origin: 'https://the-democratic-club.vercel.app/',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }))

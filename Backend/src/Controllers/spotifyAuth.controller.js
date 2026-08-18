@@ -19,7 +19,8 @@ function fetchWithTimeout(url, options = {}, timeout = DEFAULT_FETCH_TIMEOUT) {
 // and it must point to YOUR BACKEND callback route, not the frontend.
 // const REDIRECT_URI = 'http://127.0.0.1:3000/api/auth/callback';
 const REDIRECT_URI = 'https://backend-hidden-comet-6630.fly.dev/api/auth/callback';
-const FRONTEND_DASHBOARD_URL = 'http://127.0.0.1:5173/dashboard';
+// const FRONTEND_DASHBOARD_URL = 'http://127.0.0.1:5173/dashboard';
+const FRONTEND_DASHBOARD_URL = 'https://the-democratic-club.vercel.app/dashboard';
 let decoded;
 
 
