@@ -11,7 +11,8 @@ class WebSocketService {
             this.socket.close();
         }
 
-        const wsUrl = `ws://localhost:3000/ws?roomId=${roomId}&userId=${userId}`;
+        // const wsUrl = `ws://backend-hidden-comet-6630.fly.dev/ws?roomId=${roomId}&userId=${userId}`;
+        const wsUrl = `wss://backend-hidden-comet-6630.fly.dev/ws?roomId=${roomId}&userId=${userId}`;
         this.socket = new WebSocket(wsUrl);
 
         this.socket.onopen = () => {

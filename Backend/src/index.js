@@ -69,7 +69,7 @@ connectDB()
         // passing http server to websocket so they can run on the same port
         initialiseWebSocketServer(httpServer);
 
-        const server = httpServer.listen(PORT, () => {
+        const server = httpServer.listen(PORT, '0.0.0.0', () => {
             console.log(`Server started! Running on port ${PORT}.`)
         })
 
