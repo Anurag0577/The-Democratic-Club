@@ -6,10 +6,12 @@ import { useMutation } from '@tanstack/react-query';
 import api from '../api/axios.js';
 import { toast } from 'sonner';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function redirectToSpotify() {
   const token = localStorage.getItem('accessToken'); // wherever you store it
   // window.location.href = `http://127.0.0.1:3000/api/auth/login?token=${token}`;
-  window.location.href = `https://backend-hidden-comet-6630.fly.dev/api/auth/login?token=${token}`;
+  window.location.href = `${API_URL}/api/auth/login?token=${token}`;
 }
 
 export function Dashboard() {

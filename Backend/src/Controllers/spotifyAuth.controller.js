@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken'
 
 const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
 const DEFAULT_FETCH_TIMEOUT = 10000; // 10s
 
@@ -18,9 +19,10 @@ function fetchWithTimeout(url, options = {}, timeout = DEFAULT_FETCH_TIMEOUT) {
 // This MUST match exactly what's registered in your Spotify Developer Dashboard
 // and it must point to YOUR BACKEND callback route, not the frontend.
 // const REDIRECT_URI = 'http://127.0.0.1:3000/api/auth/callback';
-const REDIRECT_URI = 'https://backend-hidden-comet-6630.fly.dev/api/auth/callback';
+const REDIRECT_URI = process.env.SHOPIFY_REDIRECT_URL;
 // const FRONTEND_DASHBOARD_URL = 'http://127.0.0.1:5173/dashboard';
-const FRONTEND_DASHBOARD_URL = 'https://the-democratic-club.vercel.app/dashboard';
+// const FRONTEND_DASHBOARD_URL = 'https://the-democratic-club.vercel.app/dashboard';
+const FRONTEND_DASHBOARD_URL = `${FRONTEND_URL}/dashboard`;
 let decoded;
 
 

@@ -1,7 +1,9 @@
 import axios from 'axios'
+
+const API_URL = import.meta.env.VITE_API_URL;
 const SKIP_SOME_PATH = ['/login', '/signup'];
 // const URL = 'http://127.0.0.1:3000/api';
-const URL = 'https://backend-hidden-comet-6630.fly.dev/api';
+const URL = `${API_URL}/api`;
 
 const api = axios.create({
     baseURL: URL,

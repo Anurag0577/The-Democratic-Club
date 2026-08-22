@@ -22,7 +22,7 @@ app.use(cookieParser())
 app.use(express.json()); // important for body parsing
 app.use(cors({
     // origin: 'http://127.0.0.1:5173',
-    origin: 'https://the-democratic-club.vercel.app',
+    origin: process.env.FRONTEND_URL,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }))

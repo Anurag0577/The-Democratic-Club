@@ -1,3 +1,4 @@
+const WS_URL = import.meta.env.VITE_WS_URL;
 
 class WebSocketService {
     constructor() {
@@ -12,7 +13,7 @@ class WebSocketService {
         }
 
         // const wsUrl = `ws://backend-hidden-comet-6630.fly.dev/ws?roomId=${roomId}&userId=${userId}`;
-        const wsUrl = `wss://backend-hidden-comet-6630.fly.dev/ws?roomId=${roomId}&userId=${userId}`;
+        const wsUrl = `${WS_URL}/ws?roomId=${roomId}&userId=${userId}`;
         this.socket = new WebSocket(wsUrl);
 
         this.socket.onopen = () => {
