@@ -11,6 +11,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 function redirectToSpotify() {
   const token = localStorage.getItem('accessToken'); // wherever you store it
   // window.location.href = `http://127.0.0.1:3000/api/auth/login?token=${token}`;
+  console.log('This is bull shit', API_URL)
   window.location.href = `${API_URL}/api/auth/login?token=${token}`;
 }
 
