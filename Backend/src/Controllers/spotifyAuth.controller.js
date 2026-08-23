@@ -5,7 +5,7 @@ import { ApiResponse } from '../Utiles/ApiResponse.js';
 
 const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
-const FRONTEND_URL = 'http://localhost:5173';
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
 const DEFAULT_FETCH_TIMEOUT = 10000; // 10s
 
