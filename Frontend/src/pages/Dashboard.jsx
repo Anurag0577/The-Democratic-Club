@@ -51,7 +51,9 @@ export function Dashboard() {
       }
     }
 
-    verifySpotifyConnection();
+    if (isAuthenticatedValue) {
+      verifySpotifyConnection();
+    }
   }, [initialiseToken]);
 
   const checkPremiumStatus = useMutation({
