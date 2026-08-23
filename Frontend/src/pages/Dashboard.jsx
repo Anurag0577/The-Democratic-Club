@@ -151,18 +151,16 @@ export function Dashboard() {
                         <p className="text-white text-[12px] bg-green-600 px-4 py-1 rounded-md border border-green-400">✓ SPOTIFY PREMIUM CONNECTED!</p>
                       ) : (
                         <p className="text-white text-[12px] bg-yellow-600 px-4 py-1 rounded-md border border-yellow-400 text-center">
-                          Spotify connected, but hosting needs Spotify Premium
+                          Spotify connected (non-Premium)
                         </p>
                       )}
 
-                      {isSpotifyPremium && (
-                        <button
-                          className="py-2 px-4 w-fit lg:w-70 bg-white text-black border-3 border-transparent rounded-xl cursor-pointer font-bold flex justify-center items-center gap-2 hover:border-black transition-colors"
-                          onClick={openRoomCreationModel}
-                        >
-                          Create Room
-                        </button>
-                      )}
+                      <button
+                        className="py-2 px-4 w-fit lg:w-70 bg-white text-black border-3 border-transparent rounded-xl cursor-pointer font-bold flex justify-center items-center gap-2 hover:border-black transition-colors"
+                        onClick={openRoomCreationModel}
+                      >
+                        Create Room
+                      </button>
 
                       <button
                         onClick={() => disconnectSpotify.mutate()}
