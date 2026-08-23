@@ -37,6 +37,12 @@ const userSchema = new mongoose.Schema(
     refreshToken: {
       type: String,
     },
+    
+    spotify_product: { 
+      type: String, 
+      default: null 
+    }, // 'premium' | 'free' | 'open' | null
+
     spotify_access_token: {
       type: String,
       select: false,

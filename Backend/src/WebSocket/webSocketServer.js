@@ -28,5 +28,23 @@ export function initialiseWebSocketServer(server) {
                 }
             }
         });
+
+        socket.on('close', async function close() {
+            console.log(`WebSocket closed for userId=${socket.userId}, roomCode=${socket.roomCode}`);
+
+            if (socket.roomCode) {
+                try {
+                    await messageHandler(socket, {
+                        type: messageType.LEAVE_ROOM,
+                        payload: {
+                            userId: socket.userId,
+                            roomCode: socket.roomCode,
+                        }
+                    });
+                } catch (err) {
+                    console.error('Failed to clean up room state on socket close:', err);
+                }
+            }
+        });
     });
 }

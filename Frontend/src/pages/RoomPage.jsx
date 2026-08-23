@@ -9,20 +9,17 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios.js';
 import useAuthStore from '../store/useAuthStore.js';
 import { useRoomStore } from '../store/useRoomStore.js';
-import { websocketService } from '../services/websocketServices.js' // 1. IMPORT WEBSOCKET SERVICE
+import { websocketService } from '../services/websocketServices.js'
 import { messageType } from '../Utilities/messageType.js';
 import { useWebSocketStore } from '../store/useWebSocketStore.js';
 import { usePlayerStore } from '../store/usePlayerStore.js';
-
-const CLIENT_ID = 'e68b2e0ec25345a5a0cc536b33506b84';
 
 export default function RoomPage() {
   const [userName] = useState('Pushpa');
   const { roomCode } = useParams();
   const navigate = useNavigate();
 
-  const user = useAuthStore(state => state.user); // Get current logged in user
-  const checkSpotifyAuthentication = useAuthStore(state => state.checkSpotifyAuthentication);
+  const user = useAuthStore(state => state.user);
   const initialiseToken = useAuthStore(state => state.initialiseToken);
 
   // Zustand state variables
@@ -46,30 +43,26 @@ export default function RoomPage() {
     queryKey: ['room-details', roomCode],
     queryFn: async () => {
       const res = await api.post('/room/room-details', { roomCode });
-      return res.data?.data || res.data; // Extracts room object
+      return res.data?.data || res.data;
     },
-    enabled: !!roomCode, // Only fetch if roomCode exists
+    enabled: !!roomCode,
   });
 
-  // Extract _id as roomId from fetched details
   const roomId = roomData?._id;
-  // Fixed Auth Effect (Removed 'isAuthenticated' from dependencies)
+
+  // Auth effect
   useEffect(() => {
     initialiseToken();
     const isAuthenticatedValue = localStorage.getItem('isAuthenticated') === 'true';
     useAuthStore.setState({ isAuthenticated: isAuthenticatedValue });
-    checkSpotifyAuthentication(CLIENT_ID);
-  }, [checkSpotifyAuthentication, initialiseToken]);
+  }, [initialiseToken]);
 
   // 2. WEBSOCKET CONNECTION EFFECT
   useEffect(() => {
     const userrId = user?.id;
-// Ensure all 3 parameters exist before initiating connection
-console.log('RoomCode', roomCode, 'User Id', userrId, 'roomId', roomId)
+    console.log('RoomCode', roomCode, 'User Id', userrId, 'roomId', roomId)
     if (roomCode && user?.id && roomId) {
       console.log(`Joining room via store: ${roomCode} for user: ${user.id} (roomId: ${roomId})`);
-
-      // Pass roomId (_id from DB), user.id, and roomCode
       joinRoom(roomId, user.id, roomCode);
     } else {
       console.warn('Skipping joinRoom: waiting for roomCode, roomId, or user.id', {
@@ -79,13 +72,11 @@ console.log('RoomCode', roomCode, 'User Id', userrId, 'roomId', roomId)
       });
     }
 
-    // Cleanup on unmount or when room parameters change
     return () => {
       leaveRoom();
     };
   }, [roomCode, user?.id, joinRoom, leaveRoom, roomId]);
 
-  // Current Song State with gradient accent
   const songImageUrl = currentSong?.media_img || currentSong?.thumbnail_img || currentSong?.imageUrl;
   const accentColor = useAccentColor(songImageUrl);
 
@@ -93,7 +84,6 @@ console.log('RoomCode', roomCode, 'User Id', userrId, 'roomId', roomId)
     setAccentColor(accentColor);
   }, [accentColor, setAccentColor]);
 
-  // Handlers
   const handleLeaveRoom = () => {
     leaveRoom();
     navigate('/dashboard');
@@ -112,14 +102,6 @@ console.log('RoomCode', roomCode, 'User Id', userrId, 'roomId', roomId)
   const handleShuffle = () => console.log('[v0] Shuffle clicked');
   const handleRepeat = () => console.log('[v0] Repeat clicked');
   const handleAddSong = () => console.log('[v0] Add song clicked');
-  // const handleSongClick = (index) => console.log('[v0] Song clicked:', queue[index].title);
-
-  // const handleToggleLike = (index) => {
-  //   const newQueue = [...queue];
-  //   newQueue[index].isLiked = !newQueue[index].isLiked;
-  //   newQueue[index].likes += newQueue[index].isLiked ? 1 : -1;
-  //   setQueue(newQueue);
-  // };
 
   return (
     <div
@@ -129,14 +111,11 @@ console.log('RoomCode', roomCode, 'User Id', userrId, 'roomId', roomId)
         backgroundColor: '#000',
       }}
     >
-      {/* Universal Header */}
       <div className="shrink-0">
         <Header />
       </div>
 
-      {/* Main Responsive Container */}
       <div className="grow lg:overflow-hidden">
-        {/* DESKTOP VIEW */}
         <div className=" flex flex-col lg:flex-row h-full gap-4 px-4 pb-4 overflow-hidden">
           <div className="h-fit md:h-full w-full lg:w-[350px] overflow-hidden">
             <RoomDetailsCard/>
@@ -151,7 +130,6 @@ console.log('RoomCode', roomCode, 'User Id', userrId, 'roomId', roomId)
             <QueueSection/>
           </div>
         </div>
-
       </div>
     </div>
   );

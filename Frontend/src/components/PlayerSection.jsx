@@ -33,7 +33,7 @@ export default function PlayerSection() {
   const sdkPlayer = usePlayerStore((state) => state.sdkPlayer);
   const currentRoomId = useWebSocketStore((state) => state.currentRoomId)
   const user = useAuthStore((state) => state.user);
-  const createdBy = useRoomStore((state) => state.room.createdBy)
+  const createdBy = useRoomStore((state) => state.room?.createdBy)
 
   console.log("||user||", user, "||createdBy||", createdBy)
 

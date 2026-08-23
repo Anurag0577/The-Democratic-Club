@@ -9,16 +9,23 @@ import { toast } from 'sonner';
 const API_URL = import.meta.env.VITE_API_URL;
 
 function redirectToSpotify() {
-  const token = localStorage.getItem('accessToken'); // wherever you store it
-  // window.location.href = `http://127.0.0.1:3000/api/auth/login?token=${token}`;
-  console.log('This is bull shit', API_URL)
-  window.location.href = `${API_URL}/api/auth/login?token=${token}`;
+  const token = localStorage.getItem('accessToken');
+  if (token) {
+    window.location.href = `${API_URL}/api/auth/login?token=${token}`;
+  } else {
+    toast.error("Login session is expired! Please login first!");
+    // NOTE: openLoginModel isn't in scope here (it's a hook value inside
+    // the component). Leaving this as-is per your original code, but this
+    // line will throw if hit — see note below the component.
+    openLoginModel();
+  }
 }
 
 export function Dashboard() {
   const storedUser = useAuthStore(state => state.user);
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const isSpotifyConnected = useAuthStore(state => state.isSpotifyConnected);
+  const isSpotifyPremium = useAuthStore(state => state.isSpotifyPremium);
   const logout = useAuthStore(state => state.logout);
   const openLoginModel = useAuthStore(state => state.openLoginModel);
   const initialiseToken = useAuthStore(state => state.initialiseToken);
@@ -32,7 +39,6 @@ export function Dashboard() {
     const isAuthenticatedValue = localStorage.getItem('isAuthenticated') === 'true';
     useAuthStore.setState({ isAuthenticated: isAuthenticatedValue });
 
-    // surface any OAuth error redirected back from backend (?spotify_error=...)
     const params = new URLSearchParams(window.location.search);
     const spotifyError = params.get('spotify_error');
     if (spotifyError) {
@@ -43,9 +49,12 @@ export function Dashboard() {
 
     async function verifySpotifyConnection() {
       try {
-        const res = await api.get('/auth/status', { headers: {'Content-Type': 'Application/json'}, withCredentials: true });
-        console.log('[Frontend] Spotify connection status:', res.data.connected);
-        useAuthStore.setState({ isSpotifyConnected: res.data.connected });
+        const res = await api.get('/auth/status', { headers: { 'Content-Type': 'Application/json' }, withCredentials: true });
+        console.log('[Frontend] Spotify connection status:', res.data.connected, 'premium:', res.data.premium);
+        useAuthStore.setState({
+          isSpotifyConnected: res.data.connected,
+          isSpotifyPremium: res.data.premium,
+        });
       } catch (err) {
         console.error('[Frontend] Error checking Spotify status:', err);
       }
@@ -56,23 +65,19 @@ export function Dashboard() {
     }
   }, [initialiseToken]);
 
-  const checkPremiumStatus = useMutation({
-    mutationKey: ['check_premium'],
+  const disconnectSpotify = useMutation({
+    mutationKey: ['disconnect_spotify'],
     mutationFn: async () => {
-      const res = await api.get('/spotify/me', { withCredentials: true });
+      const res = await api.post('/auth/disconnect', {}, { withCredentials: true });
       return res?.data;
     },
-    onSuccess: (data) => {
-      console.log('[Frontend] Spotify profile:', data);
-      if (data.product === 'premium') {
-        toast.success(`Welcome ${data.display_name}! Spotify Premium detected.`);
-      } else {
-        toast.info(`Spotify account detected (${data.product} plan).`);
-      }
+    onSuccess: () => {
+      toast.success('Spotify disconnected.');
+      useAuthStore.setState({ isSpotifyConnected: false, isSpotifyPremium: false });
     },
     onError: (error) => {
-      console.error('[Frontend] Failed to fetch Spotify profile:', error);
-      toast.error('Could not verify Spotify premium status.');
+      toast.error('Could not disconnect Spotify.');
+      console.error('[Frontend] Error disconnecting Spotify:', error);
     },
   });
 
@@ -142,19 +147,29 @@ export function Dashboard() {
                 <div className="body-container flex-1 flex flex-col justify-center items-center gap-2">
                   {isSpotifyConnected ? (
                     <>
-                      <p className="text-white text-[12px] bg-green-600 px-4 py-1 rounded-md border border-green-400">✓ SPOTIFY CONNECTED!</p>
+                      {isSpotifyPremium ? (
+                        <p className="text-white text-[12px] bg-green-600 px-4 py-1 rounded-md border border-green-400">✓ SPOTIFY PREMIUM CONNECTED!</p>
+                      ) : (
+                        <p className="text-white text-[12px] bg-yellow-600 px-4 py-1 rounded-md border border-yellow-400 text-center">
+                          Spotify connected, but hosting needs Spotify Premium
+                        </p>
+                      )}
+
+                      {isSpotifyPremium && (
+                        <button
+                          className="py-2 px-4 w-fit lg:w-70 bg-white text-black border-3 border-transparent rounded-xl cursor-pointer font-bold flex justify-center items-center gap-2 hover:border-black transition-colors"
+                          onClick={openRoomCreationModel}
+                        >
+                          Create Room
+                        </button>
+                      )}
+
                       <button
-                        className="py-2 px-4 w-fit lg:w-70 bg-white text-black border-3 border-transparent rounded-xl cursor-pointer font-bold flex justify-center items-center gap-2 hover:border-black transition-colors"
-                        onClick={openRoomCreationModel}
-                      >
-                        Create Room
-                      </button>
-                      <button
-                        onClick={() => checkPremiumStatus.mutate()}
-                        disabled={checkPremiumStatus.isPending}
+                        onClick={() => disconnectSpotify.mutate()}
+                        disabled={disconnectSpotify.isPending}
                         className="py-2 px-4 bg-black text-white rounded-xl cursor-pointer text-xs disabled:opacity-50"
                       >
-                        {checkPremiumStatus.isPending ? 'Checking...' : 'Check Premium Status'}
+                        {disconnectSpotify.isPending ? 'Disconnecting...' : 'Disconnect Spotify'}
                       </button>
                     </>
                   ) : (
