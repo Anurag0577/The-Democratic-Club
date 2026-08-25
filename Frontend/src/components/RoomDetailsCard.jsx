@@ -7,14 +7,18 @@ import api from '../api/axios.js';
 import useAuthStore from '../store/useAuthStore.js';
 import { useRoomStore } from '../store/useRoomStore.js';
 import { useWebSocketStore } from '../store/useWebSocketStore.js';
+import { useNavigate } from 'react-router';
 
 export default function RoomDetailsCard() {
   const { roomCode } = useParams();
   const setRoom = useRoomStore((state) => state.setRoom)
   const user = useAuthStore((state) => state.user);
   const setTotalMember = useRoomStore((state) => state.setTotalMember);
-
   const roomState = useWebSocketStore((state) => state.roomState);
+  const leaveRoom = useWebSocketStore((state) => state.leaveRoom)
+  const navigate = useNavigate();
+  const clearNavigateFlag = useWebSocketStore(state => state.clearNavigateFlag)
+  const shouldNavigateToDashboard = useWebSocketStore(state => state.shouldNavigateToDashboard)
 
   const fetchingRoomDetails = async () => {
     const response = await api.post(
@@ -51,10 +55,14 @@ export default function RoomDetailsCard() {
       roomCode: room?.roomCode,
       createdBy: room?.createdBy,
     };
-    console.log("---------||||||---------", roomObj)
     setRoom(roomObj);
     setTotalMember(memberCount);
-  }, [memberCount, setTotalMember, room]);
+
+    if (shouldNavigateToDashboard) {
+        clearNavigateFlag();
+        navigate('/dashboard');
+    }
+  }, [memberCount, setTotalMember, room, shouldNavigateToDashboard]);
 
   if (!roomCode) {
     return <div>We did not find any room code from the URL.</div>;
@@ -67,14 +75,21 @@ export default function RoomDetailsCard() {
   const roomHostId = room?.createdBy?._id;
   const isHost = user?.id === roomHostId;
 
+  function handleDeleteRoom(){
+    leaveRoom(true);
+    navigate('/dashboard');
+  }
+
+  function handleLeaveRoom(){
+    leaveRoom(false);
+    navigate('/dashboard');
+  }
+
   return (
     <div className="flex flex-col h-full gap-3">
-
-      {/* ROOM DETAILS */}
       <div
         className="
-          border flex-1 border-white/10 rounded-2xl
-          p-3 md:p-4
+          border flex-1 border-white/10 rounded-2xl p-3 md:p-4
           bg-black/0 backdrop-blur
           text-center flex flex-col
           justify-between items-center
@@ -83,14 +98,6 @@ export default function RoomDetailsCard() {
         <h3 className="text-white font-semibold mb-2 md:mb-3 text-base lg:text-2xl">
           Room Details
         </h3>
-
-        {/* 
-          MOBILE:
-          3 items in one row
-
-          DESKTOP:
-          Your original vertical layout
-        */}
         <div
           className="
             w-full
@@ -100,8 +107,6 @@ export default function RoomDetailsCard() {
             mb-1 md:mb-2
           "
         >
-
-          {/* ROOM NAME */}
           <div className="flex items-center justify-center gap-1.5 md:gap-3 lg:gap-4">
             <FaHouse
               className="
@@ -123,7 +128,6 @@ export default function RoomDetailsCard() {
             </div>
           </div>
 
-          {/* HOST */}
           <div className="flex items-center justify-center gap-1.5 md:gap-3 lg:gap-4">
             <FaUser
               className="
@@ -145,7 +149,6 @@ export default function RoomDetailsCard() {
             </div>
           </div>
 
-          {/* MEMBERS */}
           <div className="flex items-center justify-center gap-1.5 md:gap-3 lg:gap-4">
             <FaUsers
               className="
@@ -166,31 +169,53 @@ export default function RoomDetailsCard() {
               </p>
             </div>
           </div>
-
         </div>
 
-        {/* DELETE / LEAVE */}
-        <button
-          className="
-            w-full
-            bg-transparent
-            border border-white
-            hover:bg-white
-            text-white hover:text-black
-            font-bold
-            rounded-2xl
-            transition-colors duration-200
-            cursor-pointer
-            py-1
-            text-xs md:text-sm lg:text-sm
-          "
-        >
-          {isHost ? "Delete Room" : "Leave Room"}
-        </button>
+        {isHost ?
+          (
+            <button
+              className="
+                w-full
+                bg-transparent
+                border border-white
+                hover:bg-white
+                text-white hover:text-black
+                font-bold
+                rounded-2xl
+                transition-colors duration-200
+                cursor-pointer
+                py-1
+                text-xs md:text-sm lg:text-sm
+              "
+              onClick={handleDeleteRoom}
+            >
+              Delete Room
+            </button>
+          )
+          :
+          (
+            <button
+              className="
+                  w-full
+                  bg-transparent
+                  border border-white
+                  hover:bg-white
+                  text-white hover:text-black
+                  font-bold
+                  rounded-2xl
+                  transition-colors duration-200
+                  cursor-pointer
+                  py-1
+                  text-xs md:text-sm lg:text-sm
+                "
+                onClick={handleLeaveRoom}
+            >
+              Leave Room
+            </button>
+          )
+        }
+
       </div>
-
-
-      {/* ROOM CODE */}
       <div
         className="
           border flex-1 border-white/10 rounded-2xl
@@ -201,15 +226,15 @@ export default function RoomDetailsCard() {
           md:items-center justify-around
         "
       >
-        
-          <h1 className="text-white mb-0 md:mb-2 text-sm md:text-base lg:text-2xl">
-            Room Code:
-          </h1>
-              <p className="text-white font-black text-lg md:text-xl lg:text-4xl">
-                {roomCode}
-              </p>
-            <button
-              className="
+
+        <h1 className="text-white mb-0 md:mb-2 text-sm md:text-base lg:text-2xl">
+          Room Code:
+        </h1>
+        <p className="text-white font-black text-lg md:text-xl lg:text-4xl">
+          {roomCode}
+        </p>
+        <button
+          className="
               min-w-25
                 md:w-full
                 bg-transparent
@@ -225,12 +250,11 @@ export default function RoomDetailsCard() {
                 py-1
                 text-xs md:text-sm lg:text-sm
               "
-            >
-              <FaCopy className="text-xs md:text-sm lg:text-lg" />
-              Copy
-            </button>
+        >
+          <FaCopy className="text-xs md:text-sm lg:text-lg" />
+          Copy
+        </button>
       </div>
-
     </div>
   );
 }

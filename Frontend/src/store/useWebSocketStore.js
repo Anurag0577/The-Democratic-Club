@@ -2,6 +2,7 @@ import {create} from "zustand";
 import { websocketService } from "../services/websocketServices.js";
 import {messageType} from "../Utilities/messageType.js"
 import { usePlayerStore } from "../store/usePlayerStore.js";
+import {toast} from 'sonner'
 
 const useWebSocketStore = create((set, get) => ({
     // states
@@ -15,6 +16,8 @@ const useWebSocketStore = create((set, get) => ({
     currentUserId: null,
     currentRoomId: null,
     error: null,
+    shouldNavigateToDashboard : false,
+    clearNavigateFlag : () => set({shouldNavigateToDashboard: false}),
 
     joinRoom: (roomId, userId, roomCode) => {
 
@@ -33,11 +36,12 @@ const useWebSocketStore = create((set, get) => ({
         });
     },
 
-    leaveRoom: () => {
+    leaveRoom: (isHost) => {
         const { currentUserId, roomState } = get();
         websocketService.sendMessage(messageType.LEAVE_ROOM, {
             userId: currentUserId,
             roomCode: roomState.roomCode,
+            isHost: isHost
         });
         websocketService.disconnect();
         set({
@@ -90,6 +94,24 @@ const useWebSocketStore = create((set, get) => ({
             }))
             console.log(get().roomState)
         })
+
+            websocketService.onMessage(messageType.ROOM_CLOSED, (payload) => {
+                console.log("The host has ended the room.")
+                toast.message("The host has ended the room.")
+                websocketService.disconnect(); 
+                set({
+                    roomState: {
+                        queue: [],
+                        nowPlaying: null,
+                        members: [],
+                        isPlaying: null,
+                        roomCode: null,
+                    },
+                    currentRoomId: null,
+                    currentUserId: null,
+                    shouldNavigateToDashboard: true,
+                });
+            })
 
         websocketService.onMessage(messageType.ERROR, (payload) => {
             console.error('Server error:', payload);

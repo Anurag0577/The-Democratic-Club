@@ -23,7 +23,8 @@ const messageType = {
     PLAYBACK_STATUS : 'PLAYBACK_STATUS',
     MEMBER_UPDATED : 'MEMBER_UPDATED',
     CURRENT_ROOM_STATE : 'CURRENT_ROOM_STATE',
-    ERROR : 'ERROR'
+    ERROR : 'ERROR',
+    ROOM_CLOSED : 'ROOM_CLOSED'
 }
 
 export {messageType};

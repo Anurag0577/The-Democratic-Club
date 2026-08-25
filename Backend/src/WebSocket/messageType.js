@@ -13,7 +13,7 @@ const messageType = {
     SONG_ENDED: 'SONG_ENDED',
     SONG_CHANGED: 'SONG_CHANGED',
     UPADATE_PLAYBACK_STATUS: 'UPDATE_PLAYBACK_STATUS',
-
+    
 
     
     // SERVER => CLIENT
@@ -23,7 +23,8 @@ const messageType = {
     PLAYBACK_STATUS : 'PLAYBACK_STATUS',
     MEMBER_UPDATED : 'MEMBER_UPDATED',
     CURRENT_ROOM_STATE : 'CURRENT_ROOM_STATE',
-    ERROR : 'ERROR'
+    ERROR : 'ERROR',
+    ROOM_CLOSED : 'ROOM_CLOSED'
 }
 
 export {messageType};
