@@ -94,7 +94,9 @@ export function useSpotifyPlayer() {
       isInitializingRef.current = false;
     };
 
-    // Load SDK script into DOM if not present
+
+
+    // ------ CODE START FROM HERE -----------
     if (window.Spotify?.Player) {
       initializePlayer();
     } else {

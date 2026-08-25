@@ -1,6 +1,7 @@
 import WebSocket, { WebSocketServer } from 'ws';
 import { messageHandler } from './messageHandler.js';
 import { messageType } from './messageType.js';
+import { leaveRoom } from './roomConnection.js';
 
 export function initialiseWebSocketServer(server) {
     const wss = new WebSocketServer({ server });
@@ -30,23 +31,12 @@ export function initialiseWebSocketServer(server) {
             }
         });
 
-        socket.on('close', async function close() {
-                console.log(`WebSocket closed: userId=${socket.userId}, roomCode=${socket.roomCode}, isHost=${socket.isHost}`);
+       socket.on('close', function close() {
+            console.log(`WebSocket closed: userId=${socket.userId}, roomCode=${socket.roomCode}`);
 
-                if (socket.roomCode) {
-                    try {
-                        await messageHandler(socket, {
-                            type: messageType.LEAVE_ROOM,
-                            payload: {
-                                userId: socket.userId,
-                                roomCode: socket.roomCode,
-                                isHost: socket.isHost,
-                            }
-                        });
-                    } catch (err) {
-                        console.error('Failed to clean up room state on socket close:', err);
-                    }
-                }
-            });
+            if (socket.roomCode) {
+                leaveRoom(socket); // just removes this one socket from the room's Set, nothing else
+            }
+        });
     });
 }
