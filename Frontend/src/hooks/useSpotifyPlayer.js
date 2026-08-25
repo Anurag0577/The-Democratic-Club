@@ -1,17 +1,18 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import api from '../api/axios.js';
 import { usePlayerStore } from '../store/usePlayerStore.js';
 
 export function useSpotifyPlayer() {
-  const [player, setPlayer] = useState(null);
-  const [deviceId, setDeviceId] = useState(null);
-  const [isReady, setIsReady] = useState(false);
+  // Single source of truth: read directly from the Zustand store.
+  // No parallel useState — avoids two copies of the same data drifting apart.
+  const player = usePlayerStore((state) => state.sdkPlayer);
+  const deviceId = usePlayerStore((state) => state.deviceId);
+  const isReady = usePlayerStore((state) => state.isReady);
 
   const playerRef = useRef(null);
   const isInitializingRef = useRef(false);
 
   useEffect(() => {
-    // Prevent duplicate initialization in React 18 Strict Mode
     if (playerRef.current || isInitializingRef.current) return;
 
     const initializePlayer = () => {
@@ -24,10 +25,11 @@ export function useSpotifyPlayer() {
         getOAuthToken: async (cb) => {
           try {
             const res = await api.get('/auth/playback-token', { withCredentials: true });
-            if (res.data?.access_token) {
-              cb(res.data.access_token);
+            const accessToken = res.data?.data?.access_token;
+            if (accessToken) {
+              cb(accessToken);
             } else {
-              console.error('[Spotify SDK] Access token missing from endpoint response');
+              console.error('[Spotify SDK] Access token missing from endpoint response', res.data);
             }
           } catch (err) {
             console.error('[Spotify SDK] Failed to fetch playback token:', err);
@@ -36,18 +38,10 @@ export function useSpotifyPlayer() {
         volume: 0.8,
       });
 
-      // SDK READY EVENT
       spotifyPlayer.addListener('ready', ({ device_id }) => {
         console.log('[Spotify SDK] Ready with Device ID:', device_id);
-
-        // Ensure audio volume is explicitly unmuted
         spotifyPlayer.setVolume(0.8).catch(() => {});
 
-        // 1. Update local hook state
-        setDeviceId(device_id);
-        setIsReady(true);
-
-        // 2.  SYNC DIRECTLY WITH ZUSTAND STORE
         usePlayerStore.setState({
           deviceId: device_id,
           isReady: true,
@@ -56,12 +50,8 @@ export function useSpotifyPlayer() {
         });
       });
 
-      //  SDK OFFLINE / NOT READY
       spotifyPlayer.addListener('not_ready', ({ device_id }) => {
         console.log('[Spotify SDK] Device offline:', device_id);
-        setDeviceId(null);
-        setIsReady(false);
-
         usePlayerStore.setState({
           deviceId: null,
           isReady: false,
@@ -69,34 +59,26 @@ export function useSpotifyPlayer() {
         });
       });
 
-      // SDK ERRORS
       spotifyPlayer.addListener('initialization_error', ({ message }) => {
         console.error('[Spotify SDK] Init error:', message);
-        setIsReady(false);
         usePlayerStore.setState({ isReady: false, isSdkReady: false });
       });
 
       spotifyPlayer.addListener('authentication_error', ({ message }) => {
         console.error('[Spotify SDK] Auth error:', message);
-        setIsReady(false);
         usePlayerStore.setState({ isReady: false, isSdkReady: false });
       });
 
       spotifyPlayer.addListener('account_error', ({ message }) => {
         console.error('[Spotify SDK] Account error (Premium required):', message);
-        setIsReady(false);
         usePlayerStore.setState({ isReady: false, isSdkReady: false });
       });
 
       spotifyPlayer.connect();
       playerRef.current = spotifyPlayer;
-      setPlayer(spotifyPlayer);
       isInitializingRef.current = false;
     };
 
-
-
-    // ------ CODE START FROM HERE -----------
     if (window.Spotify?.Player) {
       initializePlayer();
     } else {
@@ -126,11 +108,10 @@ export function useSpotifyPlayer() {
         playerRef.current = null;
       }
       isInitializingRef.current = false;
-      setPlayer(null);
-      setIsReady(false);
 
       usePlayerStore.setState({
         sdkPlayer: null,
+        deviceId: null,
         isReady: false,
         isSdkReady: false,
       });
