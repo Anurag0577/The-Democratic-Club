@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import logoImage from '../assets/Images/the_democratic_club_logo_white.png';
+import logo_img from '../assets/Images/the_democratic_club_logo_white.png'
 import useAuthStore from '../store/useAuthStore.js';
 import { useNavigate } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
 import api from '../api/axios.js';
 import { toast } from 'sonner';
+import { TbLogout } from "react-icons/tb";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -100,23 +101,53 @@ export function Dashboard() {
   return (
     <>
       {isAuthenticated ? (
-        <div className="dashboard-page h-auto lg:h-screen w-full bg-black text-white px-[10%]">
+        <div className="dashboard-page h-auto lg:h-screen w-full bg-black text-white ">
           <div className="dashboard-container flex flex-col justify-center">
-            <div className="dashboard-header-container flex items-center justify-center h-auto py-5">
-              <div className="dashboard-header flex justify-between items-center w-full border border-gray-600 py-2 px-5 rounded-2xl">
-                <div className="logo-container">
-                  <img onClick={() => navigate('/')} src={logoImage} className="h-12 lg:h-18 cursor-pointer" alt="Logo" />
-                </div>
-                <div className="flex justify-between items-center gap-5">
-                  <p>{`Hi, ${storedUser?.firstname || 'User'}`}</p>
-                  <button onClick={logout} className="py-2 px-4 rounded-xl bg-red-600 cursor-pointer">Logout</button>
-                </div>
-              </div>
-            </div>
+
+              <header className=" top-0 left-0 w-full z-50   ">
+                <nav className="mx-auto flex justify-center items-center">
+                    <div className=" relative flex items-center gap-4 px-6 py-1.5 flex-wrap justify-between w-full h-18  border border-white/10 rounded-2xl my-2 mx-4">
+                        <div></div>
+                        <div onClick={() => navigate('/')} className='absolute cursor-pointer left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ' >
+                            <img src={logo_img} alt="The Democratic Club logo" className="h-12 lg:h-20" />
+                            
+                        </div>
+                        <div className="flex items-center gap-3">
+                            {isAuthenticated ? (
+                                <div className="flex items-center gap-1">
+                                    <div className="flex items-center justify-center mx-5 cursor-pointer text-sm text-white">
+                                        {storedUser?.firstname ? `Hello, ${storedUser?.firstname}` : ''}
+                                    </div>
+                                    <a 
+                                        onClick={logout}
+                                        className="bg-red-600 text-black font-semibold text-sm px-6 py-2.5 rounded-xl whitespace-nowrap hover:opacity-85 hover:-translate-y-px transition-all cursor-pointer flex justify-center items-center gap-2">
+                                        <TbLogout/>    
+                                        logout
+                                    </a>
+                                </div>
+                            ) : (
+                                <ul className="hidden sm:flex items-center gap-1 list-none">
+                                    <li>
+                                        <button onClick={() => openLoginModel()} className="px-3.5 py-2 text-sm font-medium text-white hover:text-white/60 transition-colors bg-transparent border-none cursor-pointer">
+                                            Login
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button onClick={openSignupModel} className="bg-[#72FF21] text-black font-semibold text-sm px-6 py-2.5 rounded-xl whitespace-nowrap hover:opacity-85 hover:-translate-y-px transition-all cursor-pointer flex justify-center items-center gap-2">
+                                            Signup
+                                        </button>
+                                    </li>
+                                </ul>
+                            )}
+                            
+                        </div>
+                    </div>
+                </nav>
+            </header>
 
             <h1 className="text-4xl font-bold text-center mt-10 mb-5">Room Dashboard</h1>
 
-            <div className="dashboard-body flex-1 w-full flex flex-col lg:flex-row justify-between items-center gap-5 mb-10">
+            <div className="dashboard-body flex-1 w-full flex flex-col lg:flex-row justify-between items-center gap-5 mb-10 px-[10%]">
 
               <div className="left-container w-full lg:w-[49%] h-70 max-h-100 bg-[#c6ff33] text-black p-5 flex flex-col justify-between items-center rounded-2xl">
                 <div className="h-fit">

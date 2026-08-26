@@ -8,16 +8,25 @@ export default function Header({userName, onLogout, roomName}) {
   const user = useAuthStore((state) => state.user)
 
   return (
-    <div className="dashboard-header-container flex items-center justify-center h-auto py-2 px-4">
-                <div className="dashboard-header flex justify-between items-center w-full border border-white/10 px-5 rounded-2xl">
-                  <div className="logo-container">
-                    <img src={logoImage} className="h-12 lg:h-14 cursor-pointer" />
-                  </div>
-                  <h1 className='text-white font-bold text-sm lg:text-2xl uppercase'>{room.roomName}</h1>
-                  <div className="flex justify-between items-center gap-2 lg:gap-5">
-                    <p className='text-white text-sm lg:text-lg'>Hi, {user?.firstname}</p>
-                  </div>
-                </div>
-              </div>
+    <header className="top-0 left-0 w-full z-50   ">
+                    <nav className="mx-auto flex justify-center items-center">
+                        <div className=" relative flex items-center flex-wrap justify-between w-full h-18  border border-white/10 rounded-2xl bg-black/0 backdrop-blur text-center my-2 mx-4">
+                            <div></div>
+                            <div onClick={() => navigate('/')} className='absolute cursor-pointer left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2' >
+                                <img src={logoImage} alt="The Democratic Club logo" className="h-12 lg:h-19" />
+                                
+                            </div>
+                            <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-1">
+                                        <div className="flex items-center justify-center mx-5 cursor-pointer text-sm text-white">
+                                            {user.firstname ? `Hello, ${user.firstname}` : ''}
+                                        </div>
+                                        
+                                    </div>
+                                
+                            </div>
+                        </div>
+                    </nav>
+                </header>
   );
 }

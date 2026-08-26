@@ -4,6 +4,7 @@ import useAuthStore from '../store/useAuthStore.js'
 import heroBanner from '../assets/Images/final-banner-tdc.png'
 import { useNavigate } from "react-router";
 import {toast} from 'sonner'
+import { TbLogout } from "react-icons/tb";
 
 export function Homepage() {
     const user = useAuthStore((state) => state.user);
@@ -11,6 +12,7 @@ export function Homepage() {
     const initialiseToken = useAuthStore((state) => state.initialiseToken)
     const openLoginModel = useAuthStore(state => state.openLoginModel);
     const openSignupModel = useAuthStore(state => state.openSignupModel);
+    const logout = useAuthStore(state => state.logout)
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -21,18 +23,26 @@ export function Homepage() {
         <div className="bg-[#0a0a0a] min-h-screen text-white overflow-x-hidden">
 
             {/* ------------------ HEADER ------------------ */}
-            <header className="fixed top-0 left-0 w-full z-50 py-4 ">
-                <nav className="max-w-[1280px] mx-auto px-8 flex justify-center items-center ">
-                    <div className="flex items-center gap-4 bg-black/50 border border-white/10 rounded-xl px-6 py-1.5 backdrop-blur-md flex-wrap justify-between w-full backdrop-blur-md">
-                        <div onClick={() => navigate('/')} className='cursor-pointer'>
-                            <img src={logo_img} alt="The Democratic Club logo" className="h-12 lg:h-18" />
+            <header className="fixed top-0 left-0 w-full z-50  ">
+                <nav className="mx-auto flex justify-center items-center">
+                    <div className=" relative flex items-center gap-4 px-6 py-1.5 flex-wrap justify-between w-full h-18 ">
+                        <div></div>
+                        <div onClick={() => navigate('/')} className='absolute cursor-pointer left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pt-4' >
+                            <img src={logo_img} alt="The Democratic Club logo" className="h-12 lg:h-22" />
+                            
                         </div>
                         <div className="flex items-center gap-3">
                             {isAuthenticated ? (
                                 <div className="flex items-center gap-1">
-                                    <div className="h-8 w-8 border border-white/20 rounded-full flex items-center justify-center mx-5 cursor-pointer text-sm text-white">
-                                        {user.firstname ? user.firstname[0].toUpperCase() : 'X'}
+                                    <div className="flex items-center justify-center mx-5 cursor-pointer text-sm text-white">
+                                        {user.firstname ? `Hello, ${user.firstname}` : ''}
                                     </div>
+                                    <a 
+                                        onClick={logout}
+                                        className="bg-red-600 text-black font-semibold text-sm px-6 py-2.5 rounded-xl whitespace-nowrap hover:opacity-85 hover:-translate-y-px transition-all cursor-pointer flex justify-center items-center gap-2">
+                                        <TbLogout/>    
+                                        logout
+                                    </a>
                                 </div>
                             ) : (
                                 <ul className="hidden sm:flex items-center gap-1 list-none">
@@ -42,23 +52,13 @@ export function Homepage() {
                                         </button>
                                     </li>
                                     <li>
-                                        <button onClick={openSignupModel} className="px-3.5 py-2 text-sm font-medium text-white hover:text-white/60 transition-colors bg-transparent border-none cursor-pointer">
+                                        <button onClick={openSignupModel} className="bg-[#72FF21] text-black font-semibold text-sm px-6 py-2.5 rounded-xl whitespace-nowrap hover:opacity-85 hover:-translate-y-px transition-all cursor-pointer flex justify-center items-center gap-2">
                                             Signup
                                         </button>
                                     </li>
                                 </ul>
                             )}
-                            <a 
-                                onClick={() => {
-                                    navigate('/dashboard')
-                                    if(!isAuthenticated){
-                                        openLoginModel();
-                                        toast.error('Please log in to continue.')
-                                    }
-                                }} 
-                                className="bg-[#72FF21] text-black font-semibold text-sm px-6 py-2.5 rounded-xl whitespace-nowrap hover:opacity-85 hover:-translate-y-px transition-all cursor-pointer">
-                                Create a Room
-                            </a>
+                            
                         </div>
                     </div>
                 </nav>
@@ -66,13 +66,13 @@ export function Homepage() {
 
             {/* ----------------- HERO BANNER --------------------- */}
             <section
-                className="relative min-h-screen flex items-center justify-center text-center"
-                style={{
-                    backgroundImage: `url(${heroBanner})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                }}
+                className="relative min-h-screen flex items-center justify-center text-center bg-black"
+                // style={{
+                //     backgroundImage: `url(${heroBanner})`,
+                //     backgroundSize: 'cover',
+                //     backgroundPosition: 'center',
+                //     backgroundRepeat: 'no-repeat',
+                // }}
             >
                 
                 <div className="absolute inset-0 bg-black/30" />
@@ -101,10 +101,10 @@ export function Homepage() {
                                         toast.error('Please log in to continue.')
                                     }
                             }} 
-                            className="bg-[#72FF21] text-black font-semibold text-base px-7 py-3.5 rounded-xl hover:opacity-90 hover:-translate-y-0.5 transition-all cursor-pointer">
+                            className="bg-[#72FF21] text-black font-semibold text-sm px-6 py-2.5 rounded-xl whitespace-nowrap hover:opacity-85 hover:-translate-y-px transition-all cursor-pointer flex justify-center items-center gap-2">
                             Get Started
                         </a>
-                        <a href="#why" className="bg-white/10 text-white font-medium text-base px-7 py-3.5 rounded-xl border border-white/10 hover:bg-white/15 transition-all">
+                        <a href="#why" className="bg-trasparent text-white border border-white font-semibold text-sm px-6 py-2.5 rounded-xl whitespace-nowrap hover:opacity-85 hover:-translate-y-px transition-all cursor-pointer flex justify-center items-center gap-2">
                             Why we built this
                         </a>
                     </div>

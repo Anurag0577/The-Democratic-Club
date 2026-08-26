@@ -6,7 +6,7 @@ import { extractAccentColor } from '../Utilities/colorExtractor.js';
  * Returns an accent color derived from imageUrl, recomputed whenever
  * imageUrl changes. Starts as `fallback` until extraction resolves.
  */
-export function useAccentColor(imageUrl, fallback = '#C9A961') {
+export function useAccentColor(imageUrl, fallback = '#666666') {
   const [accentColor, setAccentColor] = useState(fallback);
 
   useEffect(() => {

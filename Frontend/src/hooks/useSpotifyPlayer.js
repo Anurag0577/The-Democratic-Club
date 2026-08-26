@@ -25,7 +25,7 @@ export function useSpotifyPlayer() {
         getOAuthToken: async (cb) => {
           try {
             const res = await api.get('/auth/playback-token', { withCredentials: true });
-            const accessToken = res.data?.data?.access_token;
+            const accessToken = res.data?.access_token;
             if (accessToken) {
               cb(accessToken);
             } else {

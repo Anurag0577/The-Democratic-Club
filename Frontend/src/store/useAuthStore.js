@@ -1,5 +1,6 @@
 import {create} from 'zustand'
 import {jwtDecode} from 'jwt-decode'
+import { toast } from 'sonner';
 
 const useAuthStore = create((set, get) => ({
     user: null,
@@ -44,6 +45,7 @@ const useAuthStore = create((set, get) => ({
         set({isAuthenticated: false, isSpotifyConnected: false, isSpotifyPremium: false});
         localStorage.removeItem('accessToken');
         localStorage.setItem('isAuthenticated', false)
+        toast.message("You have been successfully logged out.")
     }
 
 }))
