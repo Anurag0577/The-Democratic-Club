@@ -1,7 +1,5 @@
 // import { Signup } from './pages/Signup.jsx'
-import { Login } from './pages/Login.jsx'
 import { createBrowserRouter, Outlet, RouterProvider } from 'react-router';
-import { Signup } from './pages/Signup.jsx';
 import NotFoundPage from './components/NotFound.jsx';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { Homepage } from './components/Homepage.jsx';
@@ -33,14 +31,6 @@ function App() {
       path: '/',
       element: <RootLayout/>,
       children: [
-        {
-          path: '/login',
-          element: <Login/>
-        },
-        {
-          path: '/signup',
-          element: <Signup/>
-        },
         {
           path: '/',
           element: <Homepage/>
