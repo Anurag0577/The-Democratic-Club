@@ -6,21 +6,125 @@ import { IoMdCloseCircleOutline } from "react-icons/io";
 
 export function AuthModel(){
 
-    // store variable
+
     const activeModel = useAuthStore(state => state.activeModel)
     const openLoginModel = useAuthStore(state => state.openLoginModel);
     const openSignupModel = useAuthStore(state => state.openSignupModel);
     const closeModel = useAuthStore(state => state.closeModel);
     const updateCurrentUserInfo = useAuthStore(state => state.updateCurrentUserInfo)
 
-    // state variables
+
     const [firstname, setFirstname] = useState('')
     const [lastname, setLastname] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [firstnameError, setFirstnameError] = useState('')
+    const [lastnameError, setLastnameError] = useState('')
+    const [emailError, setEmailError] = useState('')
+    const [passwordError, setPasswordError] = useState('')
+    const [resultError, setResultError] = useState('')
 
-    
-    //  function for handling login
+    function validateloginCredentials(email, password){
+        setFirstnameError('')
+        setLastnameError('')
+        setEmailError('')
+        setPasswordError('')
+
+        if(!email){
+            setEmailError('Email is required')
+            return false
+        }
+        if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+            setEmailError('Email syntax is wrong')
+            return false
+        }
+        if(!password){
+            setPasswordError('Password is required!')
+            return false
+        }
+        if(password.length < 6){
+            setPasswordError('Password must contain atleast 6 characters.')
+            return false
+        }
+        if(!/[A-Z]/.test(password)){
+            setPasswordError('Password must contain atleast one capital letter.')
+            return false
+        }
+        if(!/[a-z]/.test(password)){
+            setPasswordError('Password must contain atleast one small letter.')
+            return false
+        }
+        if(!/[@#$%&*^]/.test(password)){
+            setPasswordError('Password must contain atleast one special symbol.')
+            return false
+        }
+        if(!/[\d]/.test(password)){
+            setPasswordError('Password must contain atleast one number.')
+            return false
+        }
+
+        return true
+    }
+
+    function validateSignupCredentials(firstname, lastname, email, password){
+        setFirstnameError('')
+        setLastnameError('')
+        setEmailError('')
+        setPasswordError('')
+
+        if(!firstname){
+            setFirstnameError('Firstname is required!')
+            return false
+        }
+        if(firstname.length < 3){
+            setFirstnameError("Firstname must contain atleast 3 characters.")
+            return false
+        }
+        if(!lastname){
+            setLastnameError('Lastname is required!')
+            return false
+        }
+        if(lastname.length < 3){
+            setLastnameError("Lastname must contain atleast 3 characters.")
+            return false
+        }
+        if(!email){
+            setEmailError('Email is required')
+            return false
+        }
+        if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+            setEmailError('Email syntax is wrong')
+            return false
+        }
+        if(!password){
+            setPasswordError('Password is required!')
+            return false
+        }
+        if(password.length < 6){
+            setPasswordError('Password must contain atleast 6 characters.')
+            return false
+        }
+        if(!/[A-Z]/.test(password)){
+            setPasswordError('Password must contain atleast one capital letter.')
+            return false
+        }
+        if(!/[a-z]/.test(password)){
+            setPasswordError('Password must contain atleast one small letter.')
+            return false
+        }
+        if(!/[@#$%&*^]/.test(password)){
+            setPasswordError('Password must contain atleast one special symbol.')
+            return false
+        }
+        if(!/[\d]/.test(password)){
+            setPasswordError('Password must contain atleast one number.')
+            return false
+        }
+
+        return true
+    }
+
+
     const loginUser = useMutation({
         mutationKey: ['loginUser'],
         mutationFn: async({email, password}) => {
@@ -36,16 +140,17 @@ export function AuthModel(){
         return response?.data?.data;
         },
         onSuccess: (data) => {
+        setResultError('')
         updateCurrentUserInfo(data.accessToken);
         closeModel();
         },
         onError: (error) => {
         console.log('Error during login', error)
+        setResultError(error?.response?.data?.message || 'Login failed. Please try again.')
         }
     })
-    
 
-    //  function for handling signup
+
     const signupUser = useMutation({
       mutationKey: ['userSignup'],
       mutationFn: async ({firstname, lastname, email, password}) => {
@@ -61,10 +166,14 @@ export function AuthModel(){
         return response.data.data;
       },
       onSuccess: (data) => {
+        setResultError('')
         updateCurrentUserInfo(data.accessToken)
         closeModel();
       },
-      onError: (error) => console.error('Error registering user:', error)
+      onError: (error) => {
+        console.error('Error registering user:', error)
+        setResultError(error?.response?.data?.message || 'Signup failed. Please try again.')
+      }
     })
 
     if (activeModel !== 'login' && activeModel !== 'signup') return null;
@@ -85,37 +194,49 @@ export function AuthModel(){
 
                         <div className="email">
                             <div className="form-feild">
-                            <label htmlFor="email" className="email-label">Email</label>
+                            <label htmlFor="login-email" className="email-label">Email</label>
                             <input 
+                                id="login-email"
                                 type="text" 
                                 value={email} 
                                 onChange={e => {
-                                e.preventDefault();
                                 setEmail(e.target.value)
                                 }}
-                                className="email my-2 border border-[#1f1f1f] rounded px-3 h-9"
+                                className={`email my-2 border rounded px-3 h-9 ${  !emailError ? 'border-[#1f1f1f]' : 'border-red-500' }`}
                                 required 
                             ></input>
+                            <p className="text-sm text-red-600" >{emailError}</p>
                             </div>
                         </div>
                         <div className="password">
                             <div className="form-feild">
-                            <label htmlFor="password" className="password-label">Password</label>
+                            <label htmlFor="login-password" className="password-label">Password</label>
                             <input 
-                                type="text" 
+                                id="login-password"
+                                type="password" 
                                 value={password} 
                                 onChange={e => {
-                                e.preventDefault();
                                 setPassword(e.target.value)
                                 }}
-                                className="password my-2 border border-[#1f1f1f] rounded px-3 h-9"
+                                className={`password my-2 border border-[#1f1f1f] rounded px-3 h-9 ${ !passwordError ? 'border-[#1f1f1f]' : 'border-red-500' }`}
                                 required 
                             ></input>
+                            <p className="text-sm text-red-600" >{passwordError}</p>
                             </div>
                         </div>
                         </div>
                         <div className="form-button flex flex-col justify-center items-center mt-5">
-                            <button className="button form-submit text-black bg-white w-full py-1.5 rounded cursor-pointer" onClick={() => loginUser.mutate({email, password})} >Login</button>
+                            <p className="text-sm text-red-600">{resultError}</p>
+                            <button 
+                                className="button form-submit text-black bg-white w-full py-1.5 rounded cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed" 
+                                disabled={loginUser.isPending}
+                                onClick={() => {
+                                    const isValid = validateloginCredentials(email, password);
+                                    if(isValid){
+                                        loginUser.mutate({email, password})
+                                    }
+                                }} 
+                            >{loginUser.isPending ? 'Logging in...' : 'Login'}</button>
                             <p className="text-[12px] text-[#b6b6b6] mt-1" >Don't have account? 
                             <a onClick={openSignupModel} className="pl-1 italic underline cursor-pointer" >Create account.</a>
                             </p>
@@ -136,65 +257,81 @@ export function AuthModel(){
 
                             <div className="name flex gap-x-3">
                                 <div className="form-feild">
-                                <label htmlFor="firstname" className="firstname-label">Firstname</label>
+                                <label htmlFor="signup-firstname" className="firstname-label">Firstname</label>
                                 <input 
+                                    id="signup-firstname"
                                     type="text" 
                                     value={firstname} 
                                     onChange={e => {
-                                    e.preventDefault();
                                     setFirstname(e.target.value)
                                     } } 
-                                    className="firstname my-2 border border-[#1f1f1f] rounded px-3 h-9"  
+                                    className={`firstname my-2 border rounded px-3 h-9 ${ !firstnameError ? 'border-[#1f1f1f]' : 'border-red-500' }`}
                                     required
                                 ></input>
+                                <p className="text-sm text-red-600" >{firstnameError}</p>
                                 </div>
                                 <div className="form-feild">
-                                <label htmlFor="lastname" className="lastname-label">Lastname</label>
+                                <label htmlFor="signup-lastname" className="lastname-label">Lastname</label>
                                 <input 
+                                    id="signup-lastname"
                                     type="text" 
                                     value={lastname} 
                                     onChange={e => {
-                                    e.preventDefault();
                                     setLastname(e.target.value)
                                     }}
-                                    className="lastname my-2 border border-[#1f1f1f] rounded px-3 h-9"
+                                    className={`lastname my-2 border rounded px-3 h-9 ${ !lastnameError ? 'border-[#1f1f1f]' : 'border-red-500' }`}
                                     required 
                                 ></input>
+                                <p className="text-sm text-red-600" >{lastnameError}</p>
                                 </div>
                             </div>
                             <div className="email">
                                 <div className="form-feild">
-                                <label htmlFor="email" className="email-label">Email</label>
+                                <label htmlFor="signup-email" className="email-label">Email</label>
                                 <input 
+                                    id="signup-email"
                                     type="text" 
                                     value={email} 
                                     onChange={e => {
-                                    e.preventDefault();
                                     setEmail(e.target.value)
                                     }}
-                                    className="email my-2 border border-[#1f1f1f] rounded px-3 h-9"
+                                    className={`email my-2 border rounded px-3 h-9 ${ !emailError ? 'border-[#1f1f1f]' : 'border-red-500' }`}
                                     required 
                                 ></input>
+                                <p className="text-sm text-red-600" >{emailError}</p>
                                 </div>
                             </div>
                             <div className="password">
                                 <div className="form-feild">
-                                <label htmlFor="password" className="password-label">Password</label>
+                                <label htmlFor="signup-password" className="password-label">Password</label>
                                 <input 
-                                    type="text" 
+                                    id="signup-password"
+                                    type="password" 
                                     value={password} 
                                     onChange={e => {
-                                    e.preventDefault();
                                     setPassword(e.target.value)
                                     }}
-                                    className="password my-2 border border-[#1f1f1f] rounded px-3 h-9"
+                                    className={`password my-2 border rounded px-3 h-9 ${ !passwordError ? 'border-[#1f1f1f]' : 'border-red-500' }`}
                                     required 
                                 ></input>
+                                <p className="text-sm text-red-600"> {passwordError} </p>
                                 </div>
                             </div>
                             </div>
                             <div className="form-button flex flex-col justify-center items-center mt-10">
-                                <button className="button form-submit text-black bg-white w-full py-1.5 rounded cursor-center" onClick={() => signupUser.mutate({firstname, lastname, email, password})} >Create</button>
+                                <p className="text-sm text-red-600">{resultError}</p>
+                                <button 
+                                    className="button form-submit text-black bg-white w-full py-1.5 rounded cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed" 
+                                    disabled={signupUser.isPending}
+                                    onClick={
+                                        () => {
+                                            const isValid = validateSignupCredentials(firstname, lastname, email, password)
+                                            if(isValid){
+                                                signupUser.mutate({firstname, lastname, email, password})
+                                            }
+                                        }
+                                    } 
+                                >{signupUser.isPending ? 'Creating...' : 'Create'}</button>
                                 <p className="text-[12px] text-[#b6b6b6] mt-1" >Already have an account? 
                                 <a onClick={openLoginModel} className="pl-1 italic underline cursor-pointer">Login.</a>
                                 </p>

@@ -89,13 +89,13 @@ export default function RoomDetailsCard() {
     <div className="flex flex-col h-full gap-3">
       <div
         className="
-          border flex-1 border-white/10 rounded-2xl p-3 md:p-4
+          border flex-1 border-white/10 rounded-2xl p-2 md:p-4
           bg-black/0 backdrop-blur
           text-center flex flex-col
           justify-between items-center
         "
       >
-        <h3 className="text-white font-semibold mb-2 md:mb-3 text-base lg:text-2xl">
+        <h3 className="text-white font-semibold mb-1 md:mb-3 text-base lg:text-2xl">
           Room Details
         </h3>
         <div

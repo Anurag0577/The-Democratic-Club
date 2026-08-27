@@ -108,7 +108,7 @@ export function Dashboard() {
                 <nav className="mx-auto flex justify-center items-center">
                     <div className=" relative flex items-center gap-4 px-6 py-1.5 flex-wrap justify-between w-full h-18  border border-white/10 rounded-2xl my-2 mx-4">
                         <div></div>
-                        <div onClick={() => navigate('/')} className='absolute cursor-pointer left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ' >
+                        <div onClick={() => navigate('/')} className='absolute cursor-pointer left-15 md:left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2  ' >
                             <img src={logo_img} alt="The Democratic Club logo" className="h-12 lg:h-20" />
                             
                         </div>
