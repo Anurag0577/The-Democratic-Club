@@ -2,7 +2,15 @@ import {create} from "zustand";
 import { websocketService } from "../services/websocketServices.js";
 import {messageType} from "../Utilities/messageType.js"
 import { usePlayerStore } from "../store/usePlayerStore.js";
+import useAuthStore from "./useAuthStore.js";
+import { useRoomStore } from "./useRoomStore.js";
 import {toast} from 'sonner'
+
+function isRoomHost() {
+    const user = useAuthStore.getState().user;
+    const createdBy = useRoomStore.getState().room?.createdBy;
+    return Boolean(user?.id && createdBy?._id === user.id);
+}
 
 const useWebSocketStore = create((set, get) => ({
     // states
@@ -144,7 +152,7 @@ const useWebSocketStore = create((set, get) => ({
                     duration: anchor.durationMs,
                     position: positionMs,
                     paused: !anchor.isPlaying,
-                });
+                }, { syncIsPlaying: !isRoomHost() });
             }
 
             console.log('-- this is the value of current roomState', get().roomState)
@@ -152,7 +160,10 @@ const useWebSocketStore = create((set, get) => ({
 
         websocketService.onMessage(messageType.PLAYBACK_STATUS, (payload) => {
             console.log('Updated playback status', payload)
-            usePlayerStore.getState().setPlayerStateChangedRemote(payload);
+            // Host drives isPlaying from the local SDK; ignore echoed room status.
+            usePlayerStore.getState().setPlayerStateChangedRemote(payload, {
+                syncIsPlaying: !isRoomHost(),
+            });
         })
 
     },

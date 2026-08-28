@@ -47,6 +47,26 @@ export default function PlayerSection() {
     }
   }, [deviceId, setStoreDeviceId]);
 
+  // Keep a ref pointing at the LATEST currentSong. The player_state_changed
+  // listener effect below only re-subscribes when `player`/`createdBy`/`user`
+  // change — NOT when currentSong changes — so the listener closure would
+  // otherwise see a stale currentSong. We need the live value to know which
+  // track's state updates we should actually trust (see handleStateChange).
+  const currentSongRef = useRef(currentSong);
+  useEffect(() => {
+    currentSongRef.current = currentSong;
+  }, [currentSong]);
+
+  // Playback trust: the SDK lies about paused:true after REST /spotify/play transfers.
+  // We track transfer window, position advancement, and explicit user pause instead.
+  const playbackRef = useRef({
+    transferStartedAt: null,
+    lastPosition: null,
+    userPaused: false,
+  });
+  const TRANSFER_GRACE_MS = 15000;
+  const POSITION_ADVANCE_MS = 250;
+
   useEffect(() => {
     if (!currentSong) return;
 
@@ -67,6 +87,39 @@ export default function PlayerSection() {
 
     let isCancelled = false;
 
+    async function pollUntilPlaying(expectedUri) {
+      const playerInstance = usePlayerStore.getState().sdkPlayer;
+      if (!playerInstance || !expectedUri) return;
+
+      const deadline = Date.now() + TRANSFER_GRACE_MS;
+      while (!isCancelled && Date.now() < deadline) {
+        try {
+          const liveState = await playerInstance.getCurrentState();
+          const liveUri = liveState?.track_window?.current_track?.uri;
+          if (liveState && liveUri === expectedUri && !liveState.paused) {
+            playbackRef.current.lastPosition = liveState.position;
+            setIsPlaying(true);
+            setPlayerStateChangedLocal({
+              duration: liveState.duration,
+              position: liveState.position,
+              paused: false,
+            });
+            console.debug('[PlayerSection] Transfer playback confirmed via getCurrentState');
+            return;
+          }
+          if (liveState && liveUri === expectedUri && liveState.position > 0) {
+            playbackRef.current.lastPosition = liveState.position;
+            setIsPlaying(true);
+            console.debug('[PlayerSection] Transfer playback inferred from advancing position');
+            return;
+          }
+        } catch (err) {
+          console.debug('[PlayerSection] getCurrentState poll failed:', err);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 350));
+      }
+    }
+
     async function startPlayback() {
       try {
         const resp = await api.put(
@@ -77,10 +130,19 @@ export default function PlayerSection() {
 
         if (!isCancelled) {
           console.log('[PlayerSection] Playback request sent successfully:', resp?.status ?? 204);
+          playbackRef.current = {
+            transferStartedAt: Date.now(),
+            lastPosition: null,
+            userPaused: false,
+          };
+          setIsPlaying(true);
+          pollUntilPlaying(spotifyUri);
         }
       } catch (err) {
         if (!isCancelled) {
           console.error('[PlayerSection] Failed to start playback:', err);
+          playbackRef.current = { transferStartedAt: null, lastPosition: null, userPaused: false };
+          setIsPlaying(false);
         }
       }
     }
@@ -90,7 +152,7 @@ export default function PlayerSection() {
     return () => {
       isCancelled = true;
     };
-  }, [currentSong, isReady, deviceId]);
+  }, [currentSong, isReady, deviceId, setIsPlaying, setPlayerStateChangedLocal]);
 
   async function handlePlaySong() {
     if (queue.length === 0) return;
@@ -140,39 +202,157 @@ export default function PlayerSection() {
   // Ref to detect natural track-end vs manual pause
   const previousStateRef = useRef(null);
 
+  function notePosition(position) {
+    playbackRef.current.lastPosition = position;
+  }
+
+  function isPositionAdvancing(position) {
+    const last = playbackRef.current.lastPosition;
+    if (last === null) {
+      notePosition(position);
+      return false;
+    }
+    if (position > last + POSITION_ADVANCE_MS) {
+      notePosition(position);
+      return true;
+    }
+    notePosition(position);
+    return false;
+  }
+
+  function isWithinTransferWindow() {
+    const startedAt = playbackRef.current.transferStartedAt;
+    return startedAt !== null && Date.now() - startedAt < TRANSFER_GRACE_MS;
+  }
+
+  // While audio plays the SDK can keep reporting paused:true. Poll position and
+  // keep isPlaying true whenever the playhead is actually moving.
+  useEffect(() => {
+    if (!player || !currentSong) return;
+
+    const interval = setInterval(async () => {
+      if (playbackRef.current.userPaused) return;
+
+      try {
+        const liveState = await player.getCurrentState();
+        const expectedUri = currentSongRef.current?.spotifyUri;
+        const liveUri = liveState?.track_window?.current_track?.uri;
+        if (!liveState || (expectedUri && liveUri !== expectedUri)) return;
+
+        if (isPositionAdvancing(liveState.position)) {
+          setIsPlaying(true);
+          if (liveState.paused) {
+            setPlayerStateChangedLocal({
+              duration: liveState.duration,
+              position: liveState.position,
+              paused: false,
+            });
+          }
+        } else if (!liveState.paused) {
+          setIsPlaying(true);
+        }
+      } catch (err) {
+        console.debug('[PlayerSection] playback sync poll failed:', err);
+      }
+    }, 800);
+
+    return () => clearInterval(interval);
+  }, [player, currentSong, setIsPlaying, setPlayerStateChangedLocal]);
+
   useEffect(() => {
     if (!player) return;
 
-    function handleStateChange(state) {
-      if (!state) return;
-      setIsPlaying(!state.paused);
+    function applyPlayerState(state, paused) {
+      setIsPlaying(!paused);
 
-      const stateInfo = {
+      setPlayerStateChangedLocal({
         duration: state.duration,
         position: state.position,
-        paused: state.paused
-      }
-      setPlayerStateChangedLocal(stateInfo)
+        paused,
+      });
 
-      // --- Detect natural track end ---
       const prev = previousStateRef.current;
       const isHost = createdBy?._id === user?.id;
 
       const trackEnded =
         isHost &&
         prev &&
-        !prev.paused &&           // it WAS playing
-        state.paused &&           // now it's paused
-        state.position === 0 &&   // at the very start
+        !prev.paused &&
+        paused &&
+        state.position === 0 &&
         state.track_window?.previous_tracks?.length > (prev.track_window?.previous_tracks?.length ?? 0);
-        // previous_tracks grew, confirming Spotify itself advanced/finished the track
 
       if (trackEnded) {
         console.log('[PlayerSection] Track ended naturally — advancing queue.');
-        handlePlaySongRef.current(); // call through ref, never stale
+        handlePlaySongRef.current();
       }
 
-      previousStateRef.current = state;
+      previousStateRef.current = { ...state, paused };
+    }
+
+    function handleStateChange(state) {
+      if (!state) return;
+
+      const expectedUri = currentSongRef.current?.spotifyUri;
+      const reportedUri = state.track_window?.current_track?.uri;
+
+      if (expectedUri && reportedUri !== expectedUri) {
+        console.debug(
+          '[PlayerSection] Ignoring stale/mismatched player_state_changed',
+          { expectedUri, reportedUri }
+        );
+        return;
+      }
+
+      const lastPosition = playbackRef.current.lastPosition;
+      const positionAdvancing =
+        lastPosition !== null &&
+        state.position > lastPosition + POSITION_ADVANCE_MS;
+      notePosition(state.position);
+
+      const prev = previousStateRef.current;
+      const isHost = createdBy?._id === user?.id;
+      const trackEnded =
+        isHost &&
+        prev &&
+        !prev.paused &&
+        state.paused &&
+        state.position === 0 &&
+        state.track_window?.previous_tracks?.length > (prev.track_window?.previous_tracks?.length ?? 0);
+
+      if (trackEnded) {
+        playbackRef.current.userPaused = false;
+        applyPlayerState(state, true);
+        return;
+      }
+
+      if (!state.paused) {
+        applyPlayerState(state, false);
+        return;
+      }
+
+      // paused:true — only trust when the user explicitly paused, or playback
+      // genuinely stopped (not during a REST transfer blip / position advance).
+      if (isWithinTransferWindow()) {
+        console.debug('[PlayerSection] Ignoring paused:true during post-transfer window');
+        previousStateRef.current = state;
+        return;
+      }
+
+      if (positionAdvancing) {
+        console.debug('[PlayerSection] Ignoring paused:true — position still advancing');
+        setIsPlaying(true);
+        previousStateRef.current = state;
+        return;
+      }
+
+      if (!playbackRef.current.userPaused) {
+        console.debug('[PlayerSection] Ignoring paused:true — no user pause action');
+        previousStateRef.current = state;
+        return;
+      }
+
+      applyPlayerState(state, true);
     }
 
     player.addListener('player_state_changed', handleStateChange);
@@ -196,6 +376,9 @@ export default function PlayerSection() {
     const { paused, duration } = playerStateChanged;
     const last = lastBroadcastRef.current;
 
+    // Never broadcast a spurious pause — the SDK fires these after REST transfers.
+    if (paused && !playbackRef.current.userPaused) return;
+
     // position is intentionally excluded — it changes every tick during playback
     const isRealTransition = last.paused !== paused || last.duration !== duration;
 
@@ -214,9 +397,11 @@ export default function PlayerSection() {
 
   function handleTogglePlay() {
     if (!player) return;
+    playbackRef.current.userPaused = isPlaying;
     console.log('hanldeTogglePlay pressed!')
     player.togglePlay().catch((err) => {
       console.error('[PlayerSection] togglePlay failed:', err);
+      playbackRef.current.userPaused = !isPlaying;
     });
   }
 

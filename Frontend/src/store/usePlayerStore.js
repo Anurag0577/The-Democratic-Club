@@ -5,7 +5,7 @@ export const usePlayerStore = create((set, get) => ({
   isPlaying: false,
   sdkPlayer: null,
   isSdkReady: false,
-  isReady: false,       // added: was only ever set via direct usePlayerStore.setState calls before, never declared here
+  isReady: false,
   deviceId: null,
   playerStateChanged: {
     duration: 0,
@@ -18,9 +18,11 @@ export const usePlayerStore = create((set, get) => ({
     playerStateChanged: { ...obj, source: 'local' },
     isPlaying: typeof obj?.paused === 'boolean' ? !obj.paused : state.isPlaying,
   })),
-  setPlayerStateChangedRemote: (obj) => set((state) => ({
+  setPlayerStateChangedRemote: (obj, options = {}) => set((state) => ({
     playerStateChanged: { ...obj, source: 'remote' },
-    isPlaying: typeof obj?.paused === 'boolean' ? !obj.paused : state.isPlaying,
+    isPlaying: options.syncIsPlaying === false
+      ? state.isPlaying
+      : (typeof obj?.paused === 'boolean' ? !obj.paused : state.isPlaying),
   })),
   setPlayerStateChanged: (obj) => set((state) => ({
     playerStateChanged: { ...obj, source: 'local' },
