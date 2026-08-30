@@ -44,7 +44,7 @@ export function Homepage() {
                         {/* LOGO */}
                         <div
                             onClick={() => navigate("/")}
-                            className="absolute cursor-pointer left-6 md:left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pt-4"
+                            className="absolute pl-10 md:pl-0 cursor-pointer left-6 md:left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pt-4"
                         >
                             <img
                                 src={logo_img}
