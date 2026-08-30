@@ -1,5 +1,22 @@
 @import "tailwindcss";
 
+@keyframes slowFloat {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-18px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-float-slow {
+  animation: slowFloat 8s ease-in-out infinite;
+}
+
+
 .form-feild{
     display:  flex;
     flex-direction: column;
@@ -9,4 +26,20 @@
 
 input{
     margin: 0;
+}
+
+.hero-section {
+    background-size: cover;
+}
+
+@media (min-width: 768px) {
+    .hero-section {
+        background-size: contain;
+    }
+}
+
+.space-mono-regular {
+  font-family: "Space Mono", monospace;
+  font-weight: 400;
+  font-style: normal;
 }
