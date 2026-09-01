@@ -15,6 +15,14 @@ import stepOneImg from "../assets/Images/stepOneImg.png";
 import stepTwoImg from "../assets/Images/stepTwoImg.png";
 import stepThreeImg from "../assets/Images/stepThreeImage.png";
 import stepFourImg from "../assets/Images/stepFourImg.png";
+import problemImg from "../assets/Images/problem-img.png"
+import leftHand from "../assets/Images/left-hand.png"
+import rightHand from "../assets/Images/right-hand.png"
+import VinylSpinner from "../components/DesignComponent/vinylSpinner.jsx"
+import useBannerone from "../assets/Images/use-banner-one.png"
+import useBannertwo from "../assets/Images/use-banner-two.png"
+import useBannerthree from "../assets/Images/use-banner-three.png"
+import useBannerfour from "../assets/Images/use-banner-four.png"
 import { FaXTwitter, FaLinkedin, FaGithub } from "react-icons/fa6";
 
 export function Homepage() {
@@ -112,7 +120,7 @@ export function Homepage() {
                     backgroundRepeat: "no-repeat",
                 }}
             >
-                <div className="relative z-10 max-w-4xl mx-auto px-6 flex flex-col items-center gap-4 md:gap-6 animate-float-slow">
+                <div className="relative z-10 max-w-4xl mx-auto px-6 flex flex-col items-center gap-4 md:gap-6 ">
 
                     <span className="text-[#72FF21] text-xs font-bold tracking-[0.1em] uppercase">
                         The Republic of Sound
@@ -158,39 +166,49 @@ export function Homepage() {
 
 
             {/* ---------------- PROBLEM STATEMENT SECTION ---------------- */}
-            <div
-                className="h-fit w-full py-12 md:py-20 px-6 md:px-auto text-white flex justify-center border-b border-white/20"
-            >
-
-                <AnimatedText
-                    text="In every gathering, one person connects their phone and decides what plays, often ignoring what the room actually wants. It’s frustrating and can quickly kill the vibe."
-                />
+            <div className="h-fit w-full py-10 md:py-12 text-white flex flex-col justify-center items-center border-b border-white/20">
+                <div className="subheading text-xs md:text-sm text-center tracking-tight pb-4 w-full px-6">
+                    PROBLEM WE FACE IN DAILY LIFE
+                </div>
+                <div className="flex flex-col md:flex-row justify-center items-center w-full gap-8 md:gap-12 px-6 md:px-12 lg:px-20">
+                    <h2 className="w-full md:w-1/2 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl tracking-tight text-center md:text-left">
+                        In every gathering, one{' '}
+                        <em className="text-[#72FF21]">person</em> connects their phone
+                        &amp; <em className="text-[#72FF21]">hijack the music.</em>
+                    </h2>
+                    <img
+                        className="w-[70%] sm:w-[55%] md:w-[30%]"
+                        src={problemImg}
+                    />
+                </div>
             </div>
 
 
             {/* ---------------- INTRODUCE SAAS ---------------- */}
             <div className="w-full py-12 md:py-20 bg-[#080808] text-white border-b border-white/20">
 
-                <div className="heading-container w-full flex flex-col justify-center items-center px-6 md:px-0">
+                <div className="flex justify-center items-center">
+                    <img src={leftHand} className="w-[20%] object-contain relative z-10 animate-float-slow"></img>
+                    <div className="heading-container w-full flex flex-col justify-center items-center px-6 md:px-0">
 
-                    <div className="subheading text-sm tracking-tight pb-4">
-                        A NEW RULE FOR THE AUX.
+                        <div className="subheading text-sm tracking-tight pb-4">
+                            A NEW RULE FOR THE AUX.
+                        </div>
+
+                        <h2 className="text-4xl leading-tighter md:text-5xl tracking-tight text-center ">
+                            The music isn't controlled by one person anymore.
+                        </h2>
+
+                        <h2 className="text-3xl md:text-5xl tracking-tight text-center">
+                            It's decided by everyone.
+                        </h2>
+
+                        <p className=" text-sm md:text-lg tracking-tight text-white/80 pt-4 pb-8 md:pb-10 text-center space-mono-regular">
+                            The Democratic Club brings democratic decision-making to music playback.
+                        </p>
+
                     </div>
-
-                    <h2 className="text-4xl leading-tighter md:text-5xl tracking-tight text-center ">
-                        The music isn't controlled by one person anymore.
-                    </h2>
-
-                    <h2 className="text-3xl md:text-5xl tracking-tight text-center">
-                        It's decided by everyone.
-                    </h2>
-
-                    <p className=" text-sm md:text-lg tracking-tight text-white/80 pt-4 pb-8 md:pb-10 text-center space-mono-regular">
-                        The Democratic Club brings democratic decision-making to
-                        music playback, making the soundtrack of a gathering
-                        something everyone can participate in.
-                    </p>
-
+                    <img src={rightHand} className="w-[20%] object-contain relative z-10 animate-float-slow"></img>
                 </div>
 
                 <div className="image-screenshot-container px-6 md:px-30">
@@ -204,113 +222,12 @@ export function Homepage() {
             </div>
 
 
-            {/* ---------------- USE CASES ---------------- */}
-            <div className="useCases-container bg-white text-black flex flex-col justify-center items-center py-12 md:py-20 border-b border-black/20">
-
-                <div className="useCase-heading-container flex flex-col justify-center items-center pb-8 md:pb-10 px-6 md:px-0">
-
-                    <div className="subheading text-sm tracking-tight pb-2">
-                        USE CASES
-                    </div>
-
-                    <h2 className="text-4xl leading-tighter md:text-5xl md:tracking-tight text-center">
-                        If people are together, the music can be decided together.
-                    </h2>
-
-                </div>
-
-
-                <div
-                    className="useCase-card-container w-full flex flex-col md:flex-row justify-around px-5 gap-4 md:gap-8 md:max-w-[90%] text-white"
-                    style={{ perspective: "1000px" }}
-                >
-
-                    {/* CARD ONE */}
-                    <div
-                        className="card card-one relative h-48 md:h-80 w-full aspect-square bg-black border-2 border-gray-500 flex-1 rounded-2xl flex justify-center items-end overflow-hidden transition-transform duration-300 ease-out will-change-transform md:hover:[transform:rotateX(6deg)_rotateY(-6deg)_scale(1.03)]"
-                        style={{
-                            backgroundImage: `url(${cardOne})`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                            backgroundRepeat: "no-repeat",
-                            transformStyle: "preserve-3d",
-                        }}
-                    >
-                        <div className="absolute inset-0 bg-black/20 transition-colors duration-300" />
-
-                        <p className="relative z-10 p-2 text-base md:text-xl text-shadow-2xl">
-                            Party at clubs
-                        </p>
-                    </div>
-
-
-                    {/* CARD TWO */}
-                    <div
-                        className="card card-two relative h-48 md:h-80 w-full aspect-square bg-black border-2 border-gray-500 flex-1 rounded-2xl flex justify-center items-end overflow-hidden transition-transform duration-300 ease-out will-change-transform md:hover:[transform:rotateX(6deg)_rotateY(6deg)_scale(1.03)]"
-                        style={{
-                            backgroundImage: `url(${cardTwo})`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                            backgroundRepeat: "no-repeat",
-                            transformStyle: "preserve-3d",
-                        }}
-                    >
-                        <div className="absolute inset-0 bg-black/20 transition-colors duration-300" />
-
-                        <p className="relative z-10 p-2 text-base md:text-xl text-shadow-2xl">
-                            Enjoy With Friends
-                        </p>
-                    </div>
-
-
-                    {/* CARD THREE */}
-                    <div
-                        className="card card-three relative h-48 md:h-80 w-full aspect-square bg-black border-2 border-gray-500 flex-1 rounded-2xl flex justify-center items-end overflow-hidden transition-transform duration-300 ease-out will-change-transform md:hover:[transform:rotateX(-6deg)_rotateY(-6deg)_scale(1.03)]"
-                        style={{
-                            backgroundImage: `url(${cardThree})`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                            backgroundRepeat: "no-repeat",
-                            transformStyle: "preserve-3d",
-                        }}
-                    >
-                        <div className="absolute inset-0 bg-black/20 transition-colors duration-300" />
-
-                        <p className="relative z-10 p-2 text-base md:text-xl text-shadow-2xl">
-                            Festival Gathering
-                        </p>
-                    </div>
-
-
-                    {/* CARD FOUR */}
-                    <div
-                        className="card card-four relative h-48 md:h-80 w-full aspect-square bg-black border-2 border-gray-500 flex-1 rounded-2xl flex justify-center items-end overflow-hidden transition-transform duration-300 ease-out will-change-transform md:hover:[transform:rotateX(-6deg)_rotateY(6deg)_scale(1.03)]"
-                        style={{
-                            backgroundImage: `url(${cardFour})`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                            backgroundRepeat: "no-repeat",
-                            transformStyle: "preserve-3d",
-                        }}
-                    >
-                        <div className="absolute inset-0 bg-black/20 transition-colors duration-300" />
-
-                        <p className="relative z-10 p-2 text-base md:text-xl text-shadow-2xl">
-                            Family Event
-                        </p>
-                    </div>
-
-                </div>
-
-            </div>
-
-
             {/* ---------------- HOW TO USE ---------------- */}
-            <div className="howToUse bg-white text-black flex flex-col justify-center items-center py-12 md:py-20">
+            <div className="howToUse flex flex-col justify-center items-center py-12 md:py-20 bg-white text-black">
 
                 <div className="howToUse-heading-container flex flex-col justify-center items-center w-full px-6 md:px-0">
 
-                    <div className="subheading text-sm tracking-tight pb-4">
+                    <div className="subheading text-sm tracking-tight pb-2">
                         NEXT STEP
                     </div>
 
@@ -318,7 +235,7 @@ export function Homepage() {
                         How It Works?
                     </h2>
 
-                    <p className="text-base md:text-lg tracking-tight text-gray-600 pt-4 pb-8 md:pb-10 text-center space-mono-regular">
+                    <p className="text-base md:text-lg tracking-tight text-gray-700 pt-2 pb-8 md:pb-10 text-center space-mono-regular">
                         Set up your music session, bring everyone in, and let the
                         room decide what plays next.
                     </p>
@@ -339,11 +256,8 @@ export function Homepage() {
                             Connect Spotify & Create a Room
                         </h2>
 
-                        <p className="text-sm pl-0 pr-0 md:pl-10 text-black/80 space-mono-regular">
-                            Link your Spotify Premium account to get started,
-                            Premium is required since playback runs through
-                            Spotify's official Web Player SDK. Once connected,
-                            hit "Create Room" to spin up a new listening session.
+                        <p className="text-md pl-0 pr-0 md:pl-10 text-black/80 space-mono-regular">
+                            Connect your Spotify Premium account and click Create Room to start your session.
                         </p>
 
                     </div>
@@ -351,7 +265,7 @@ export function Homepage() {
                     <img
                         src={stepOneImg}
                         alt="Connect Spotify and create a room"
-                        className="order-1 md:order-none border-4 border-gray-300 m-4 md:m-0 md:mt-5 md:border-t-6 md:border-r-6 aspect-video rounded-2xl md:rounded-tr-2xl h-40 md:h-60 w-[calc(100%-2rem)] md:w-auto object-cover"
+                        className="order-1 md:order-none border-2 border-gray-700 m-4 md:m-0 md:mt-5 md:border-t-2 md:border-r-2 aspect-video rounded-2xl md:rounded-tr-2xl h-40 md:h-60 w-[calc(100%-2rem)] md:w-auto object-cover"
                     />
 
                 </div>
@@ -370,11 +284,8 @@ export function Homepage() {
                             Share the Room Code
                         </h2>
 
-                        <p className="text-sm text-black/80 pl-0 pr-0 md:pr-10 space-mono-regular">
-                            Once your room is created, share the unique room code
-                            with your friends. They can head to the app, enter
-                            the code, and join your room instantly. No Spotify
-                            Premium required on their end, just an account to hop in.
+                        <p className="text-md text-black/80 pl-0 pr-0 md:pr-10 space-mono-regular">
+                            Share your room code to let friends join in seconds. Guests don't need Premium to vote.
                         </p>
 
                     </div>
@@ -382,7 +293,7 @@ export function Homepage() {
                     <img
                         src={stepTwoImg}
                         alt="Share the room code"
-                        className="order-1 md:order-none border-4 border-gray-300 m-4 md:m-0 md:mt-5 md:border-t-6 md:border-l-6 aspect-video rounded-2xl md:rounded-tl-2xl h-40 md:h-60 w-[calc(100%-2rem)] md:w-auto object-cover"
+                        className="order-1 md:order-none border-4 border-gray-700 m-4 md:m-0 md:mt-5 md:border-t-6 md:border-l-6 aspect-video rounded-2xl md:rounded-tl-2xl h-40 md:h-60 w-[calc(100%-2rem)] md:w-auto object-cover"
                     />
 
                 </div>
@@ -401,12 +312,8 @@ export function Homepage() {
                             Add & Upvote Songs
                         </h2>
 
-                        <p className="text-sm pl-0 pr-0 md:pl-10 text-black/80 space-mono-regular" >
-                            Once inside the room, guests can search for and add
-                            their favorite tracks straight to the shared queue.
-                            Don't want to add your own? Upvote songs already in
-                            the queue instead. The more upvotes a track gets,
-                            the higher it climbs.
+                        <p className="text-md pl-0 pr-0 md:pl-10 text-black/80 space-mono-regular" >
+                            Guests can search and add songs to the queue, or upvote existing ones. The more votes a song gets, the higher it climbs.
                         </p>
 
                     </div>
@@ -414,7 +321,7 @@ export function Homepage() {
                     <img
                         src={stepThreeImg}
                         alt="Add and upvote songs"
-                        className="order-1 md:order-none border-4 border-gray-300 m-4 md:m-0 md:mt-5 md:border-t-6 md:border-r-6 aspect-video rounded-2xl md:rounded-tr-2xl h-40 md:h-60 w-[calc(100%-2rem)] md:w-auto object-cover"
+                        className="order-1 md:order-none border-4 border-gray-700 m-4 md:m-0 md:mt-5 md:border-t-6 md:border-r-6 aspect-video rounded-2xl md:rounded-tr-2xl h-40 md:h-60 w-[calc(100%-2rem)] md:w-auto object-cover"
                     />
 
                 </div>
@@ -433,12 +340,8 @@ export function Homepage() {
                             Song With Highest Votes Play Next
                         </h2>
 
-                        <p className="text-sm md:pr-10 pl-0 pr-0 text-black/80 space-mono-regular">
-                            The queue isn't just a list, it's a leaderboard. As
-                            upvotes come in, tracks automatically reorder themselves,
-                            with the most-voted song always sitting at the top ready
-                            to play next. Once the current track ends (or the host
-                            skips it), the highest-voted song plays automatically.
+                        <p className="text-md md:pr-10 pl-0 pr-0 text-black/80 space-mono-regular">
+                            Songs reorder in real time based on votes. When the current track ends, the highest-voted track plays automatically.
                         </p>
 
                     </div>
@@ -446,7 +349,7 @@ export function Homepage() {
                     <img
                         src={stepFourImg}
                         alt="Highest voted song plays next"
-                        className="order-1 md:order-none border-4 border-gray-300 m-4 md:m-0 md:mt-5 md:border-t-6 md:border-l-6 aspect-video rounded-2xl md:rounded-tl-2xl h-40 md:h-60 w-[calc(100%-2rem)] md:w-auto object-cover"
+                        className="order-1 md:order-none border-4 border-gray-700 m-4 md:m-0 md:mt-5 md:border-t-6 md:border-l-6 aspect-video rounded-2xl md:rounded-tl-2xl h-40 md:h-60 w-[calc(100%-2rem)] md:w-auto object-cover"
                     />
 
                 </div>
@@ -454,8 +357,102 @@ export function Homepage() {
             </div>
 
 
+            {/* ---------------- USE CASES ---------------- */}
+            <div className="useCases-container  flex flex-col justify-center items-center py-12 md:py-20 border-b border-black/20">
+
+                <div className="useCase-heading-container flex flex-col justify-center items-center pb-8 md:pb-10 px-6 md:px-0">
+
+                    <div className="subheading text-sm tracking-tight pb-2">
+                        USE CASES
+                    </div>
+
+                    <h2 className="text-4xl leading-tighter md:text-5xl md:tracking-tight text-center">
+                        If people are together, the music can be decided together.
+                    </h2>
+                    <p className=" text-sm md:text-lg tracking-tight text-white/80 pt-4 pb-8 md:pb-10 text-center space-mono-regular">
+                        Guests search and upvote their favorite music, putting the playlist in everyone’s hands.
+                    </p>
+
+                </div>
+
+
+                <div
+                    className="useCase-card-container w-full flex flex-col px-5 text-white"
+                    style={{ perspective: "1000px" }}
+                >
+                    {/* USE CASE #1 */}
+                    <div className="card-one-container w-full flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0 pb-10 md:pb-15 border-b border-white/30">
+                        <div className="use-image-container w-full md:w-[60%] h-64 md:h-100 flex justify-center items-center"
+                            style={{
+                                backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${useBannerone})`,
+                                backgroundSize: "cover",
+                                backgroundPosition: "center",
+                                backgroundRepeat: "no-repeat"
+                            }}
+                        >
+                            <h1 className="text-3xl md:text-5xl text-center mt-3 px-4">Vote the Vibe With Friends</h1>
+                        </div>
+                        <VinylSpinner imageUrl="https://i.scdn.co/image/ab67616d0000b273563e078ad6506c79c9f3292a" accentColor="#8FBBD3" position="left" />
+                    </div>
+
+
+                    {/* USE CASE #2 */}
+                    {/* <div className="card-two-container w-full flex flex-col-reverse md:flex-row justify-between items-center gap-4 md:gap-0">
+                        <VinylSpinner imageUrl="https://i.scdn.co/image/ab67616d0000b2730c65b15f5d4d65ed793c37cb" accentColor="#E1A011" position="right" />
+                        <div className="use-image-container w-full md:w-[60%] h-64 md:h-100 flex justify-center items-center"
+                            style={{
+                                backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${useBannertwo})`,
+                                backgroundSize: "cover",
+                                backgroundPosition: "center",
+                                backgroundRepeat: "no-repeat"
+                            }}
+                        >
+                            <h1 className="text-3xl md:text-5xl text-center mt-3 px-4">Pick the Party Playlist Together</h1>
+                        </div>
+                    </div> */}
+
+
+                    {/* USE CASE #3 */}
+                    <div className="card-three-container w-full flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0 pt-10 md:pt-15 ">
+                        <VinylSpinner imageUrl="https://i.scdn.co/image/ab67616d0000b27384272864294efe15fcc66c4f" accentColor="#D8B162" position="right" />
+                        <div className="use-image-container w-full md:w-[60%] h-64 md:h-100 flex justify-center items-center"
+                            style={{
+                                backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${useBannerthree})`,
+                                backgroundSize: "cover",
+                                backgroundPosition: "center",
+                                backgroundRepeat: "no-repeat"
+                            }}
+                        >
+                            <h1 className="text-3xl md:text-5xl text-center mt-3 px-4">Crowd-Powered Festival Anthems</h1>
+                        </div>
+                    </div>
+
+
+                    {/* USE CASE #4 */}
+                    {/* <div className="card-four-container w-full flex flex-col-reverse md:flex-row justify-between items-center gap-4 md:gap-0">
+                        <VinylSpinner imageUrl="https://i.scdn.co/image/ab67616d0000b2736c8802411130056f447257a6" accentColor="#970F1D" position="right" />
+                        <div className="use-image-container w-full md:w-[60%] h-64 md:h-100 flex justify-center items-center"
+                            style={{
+                                backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${useBannerfour})`,
+                                backgroundSize: "cover",
+                                backgroundPosition: "center",
+                                backgroundRepeat: "no-repeat"
+                            }}
+                        >
+                            <h1 className="text-3xl md:text-5xl text-center mt-3 px-4">Let Viwers Vote the Stream Soundtrack</h1>
+                        </div>
+                    </div> */}
+
+                </div>
+
+            </div>
+
+
+
+
+
             {/* ---------------- PHILOSOPHY ---------------- */}
-            <div className="philosophy-container py-12 md:py-20 bg-[#080808] text-white w-full flex justify-center border-b border-white/30">
+            <div className="philosophy-container py-12 md:py-20 bg-white text-black w-full flex justify-center border-b border-black/30">
 
                 <div className="philosophy-heading-container flex flex-col justify-center items-center w-[90%] md:w-[70%]">
 
@@ -471,7 +468,7 @@ export function Homepage() {
                         Not Dictated by One Person.
                     </h2>
 
-                    <p className="text-base md:text-lg tracking-tight text-white/80 pt-4 pb-8 md:pb-10 text-center space-mono-regular">
+                    <p className="text-base md:text-lg tracking-tight text-black/80 pt-4 pb-8 md:pb-10 text-center space-mono-regular">
                         It's not about replacing Spotify. It's about adding a
                         layer of group decision-making on top of Spotify's massive
                         music library. The admin provides the speakers and Spotify
@@ -485,7 +482,7 @@ export function Homepage() {
 
 
             {/* ---------------- PROBLEMS IT SOLVES ---------------- */}
-            <div className="philosophy-container py-12 md:py-20 bg-[#080808] text-white w-full flex flex-col justify-center border-b border-white/30">
+            <div className="philosophy-container py-12 md:py-20 bg-white text-black w-full flex flex-col justify-center border-b border-black/30">
 
                 <div className="philosophy-heading-container justify-center items-center text-center w-full mb-8 md:mb-10 px-6 md:px-0">
 
@@ -499,13 +496,13 @@ export function Homepage() {
                 <div className="problem-card-container flex flex-col md:flex-row justify-center items-stretch gap-8 md:gap-20 w-full md:w-[70%] mx-auto px-5">
 
                     {/* PROBLEM 1 */}
-                    <div className="problem-card-one flex-1 flex flex-col justify-center items-center border border-white/30 rounded-2xl p-5 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-white/60">
+                    <div className="problem-card-one flex-1 flex flex-col justify-center items-center border border-black/30 rounded-2xl p-5 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-white/60">
 
                         <div className="subheading text-sm tracking-tight pb-1">
                             THE PARTY DJ PROBLEM
                         </div>
 
-                        <p className="text-base md:text-lg tracking-tight text-white/80 pt-1 text-center space-mono-regular">
+                        <p className="text-base md:text-lg tracking-tight text-black/80 pt-1 text-center space-mono-regular">
                             At parties, gatherings, or shared workspaces, one
                             person typically controls the music. They play what
                             they like, others request songs awkwardly, and someone
@@ -518,13 +515,13 @@ export function Homepage() {
 
 
                     {/* PROBLEM 2 */}
-                    <div className="problem-card-two flex-1 flex flex-col justify-center items-center border border-white/30 rounded-2xl p-5 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-white/60">
+                    <div className="problem-card-two flex-1 flex flex-col justify-center items-center border border-black/30 rounded-2xl p-5 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-white/60">
 
                         <div className="subheading text-sm tracking-tight pb-1">
                             THE SPOTIFY LIMITATIONS
                         </div>
 
-                        <p className="text-base md:text-lg tracking-tight text-white/80 pt-1 text-center space-mono-regular">
+                        <p className="text-base md:text-lg tracking-tight text-black/80 pt-1 text-center space-mono-regular">
                             Spotify is designed for individual listening. There's
                             no built-in way for multiple people to collaboratively
                             build a queue with voting. You can share a playlist,
@@ -540,7 +537,7 @@ export function Homepage() {
 
 
             {/* ---------------- ENDING SECTION ---------------- */}
-            <div className="philosophy-container py-12 md:py-20 bg-[#080808] text-white w-full flex justify-center border-b border-white/30">
+            <div className="philosophy-container py-12 md:py-20 bg-white text-black w-full flex justify-center border-b border-white/30">
 
                 <div className="philosophy-heading-container flex flex-col justify-center items-center w-[90%] md:w-[70%]">
 

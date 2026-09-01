@@ -2,18 +2,24 @@
 
 @keyframes slowFloat {
   0% {
-    transform: translateY(0px);
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-15px) rotate(-3deg);
   }
   50% {
-    transform: translateY(-18px);
+    transform: translateY(-32px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-15px) rotate(3deg);
   }
   100% {
-    transform: translateY(0px);
+    transform: translateY(0px) rotate(0deg);
   }
 }
 
 .animate-float-slow {
-  animation: slowFloat 8s ease-in-out infinite;
+  animation: slowFloat 5s ease-in-out infinite;
 }
 
 

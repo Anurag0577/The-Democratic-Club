@@ -20,7 +20,7 @@ const AnimatedText = ({ text }) => {
     }, []);
 
     return (
-        <p ref={ref} className=" space-mono-regular text-xl md:text-4xl max-w-[80%] text-left leading-5 md:leading-8 flex flex-wrap justify-center gap-x-3 gap-y-2">
+        <h1 ref={ref} className="  text-xl flex-1 md:text-5xl max-w-[80%] text-left leading-5 md:leading-8 flex flex-wrap justify-center gap-x-3 gap-y-2">
             {words.map((word, i) => (
                 <span
                     key={i}
@@ -37,7 +37,7 @@ const AnimatedText = ({ text }) => {
                     {word}
                 </span>
             ))}
-        </p>
+        </h1>
     );
 };
 
