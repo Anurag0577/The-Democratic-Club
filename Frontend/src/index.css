@@ -6,6 +6,7 @@ h1, h2, h3, h4{
 a,p,div{
     font-family: "Google Sans Flex", sans-serif;
     font-optical-sizing: auto;
+    word-spacing: 4px;
     font-weight: 600;
     letter-spacing: -0.5px;
     font-variation-settings:
