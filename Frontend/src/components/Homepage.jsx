@@ -175,7 +175,7 @@ export function Homepage() {
                 </div>
                 <div className="flex flex-col md:flex-row justify-between items-center w-full gap-8 md:gap-12 px-6 md:px-12 lg:px-20">
                     <VinylSpinner imageUrl="https://i.scdn.co/image/ab67616d0000b2730c65b15f5d4d65ed793c37cb" accentColor="#6C2265" position="right" className="hidden md:block"  />
-                    <h2 className="bricolage-grotesque-light w-full md:w-1/2 text-3xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-tight text-center ">
+                    <h2 className="bricolage-grotesque-light w-full md:w-1/2 text-3xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-tight text-center z-100 ">
                         In every gathering, one{' '}
                         <em className="text-[#72FF21]">person</em> connects their phone
                         &amp; <em className="text-[#72FF21]">hijack the music</em>.
@@ -385,7 +385,7 @@ export function Homepage() {
             <div className="w-full py-12 md:py-16 px-6 md:px-12 lg:px-20 text-white border-b border-white/30">
             <div className="useCase-heading-container flex flex-col md:flex-row justify-center md:justify-between pb-8 md:pb-10 px-6 md:px-0">
                 <VinylSpinner imageUrl="https://i.scdn.co/image/ab67616d0000b27384272864294efe15fcc66c4f" accentColor="#D8B162" position="right" className="hidden md:block"  />
-                <div className="useCase-heading-container flex flex-col justify-center items-center ">
+                <div className="useCase-heading-container flex flex-col justify-center items-center z-100">
 
                     <div className="subheading text-sm tracking-tight pb-2">
                         USE CASES
