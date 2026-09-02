@@ -395,7 +395,7 @@ export function Homepage() {
                         If people are together.
                     </h2>
                     <h2 className="bricolage-grotesque-bold text-4xl leading-tighter md:text-5xl md:tracking-tight text-center">
-                        The music can be decided together.
+                        Music should decided together.
                     </h2>
                     <p className=" text-sm md:text-lg tracking-tight text-white/80 pt-4 pb-8 md:pb-10 text-center ">
                         Guests search and upvote their favorite music, putting the playlist in everyone’s hands.
