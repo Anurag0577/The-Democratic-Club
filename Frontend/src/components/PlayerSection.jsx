@@ -28,7 +28,7 @@ export default function PlayerSection() {
   const setPlayerStateChangedLocal = usePlayerStore((state) => state.setPlayerStateChangedLocal)
   const songChanged = useWebSocketStore((state) => state.songChanged)
   const removeSong = useWebSocketStore((state)=> state.removeSong)
-    const queue = useWebSocketStore((state) => state.roomState.queue) || [];
+  const queue = useWebSocketStore((state) => state.roomState.queue) || [];
   const setCurrentSong = usePlayerStore((state) => state.setCurrentSong);
   const sdkPlayer = usePlayerStore((state) => state.sdkPlayer);
   const currentRoomId = useWebSocketStore((state) => state.currentRoomId)
@@ -428,8 +428,8 @@ export default function PlayerSection() {
 
       <div className="p-4 md:p-8 flex-grow flex flex-col justify-between overflow-y-auto relative z-10">
 
-        <div className="flex justify-center mb-3 md:mb-6">
-          <div className="relative w-32 h-32 md:w-54 md:h-54 lg:w-56 lg:h-56">
+        <div className="flex flex-1 justify-center mb-3 md:mb-6">
+          <div className="relative w-[30vw] h-[30vw] md:w-56 md:h-56">
 
             <div
               className="absolute"
@@ -511,7 +511,8 @@ export default function PlayerSection() {
           </h2>
           <p className='text-white text-shadow-2xl'>{currentSong.artist_name}</p>
         </div>
-
+        
+        <div>
         <PlaybackTimeline/>
 
 
@@ -540,7 +541,7 @@ export default function PlayerSection() {
         ) : (
           <div></div>
         )}
-        
+        </div>
 
 
 
