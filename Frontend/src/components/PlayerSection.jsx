@@ -16,7 +16,7 @@ import useAuthStore from '../store/useAuthStore.js'
 import { useRoomStore } from '../store/useRoomStore.js';
 export default function PlayerSection() {
 
-  const { player, deviceId, isReady } = useSpotifyPlayer();
+  const { spotifyPlayer:player, device:deviceId, isPlayerReady:isReady } = useSpotifyPlayer();
 
 
   const currentSong = usePlayerStore((state) => state.currentSong);
@@ -30,7 +30,7 @@ export default function PlayerSection() {
   const removeSong = useWebSocketStore((state)=> state.removeSong)
   const queue = useWebSocketStore((state) => state.roomState.queue) || [];
   const setCurrentSong = usePlayerStore((state) => state.setCurrentSong);
-  const sdkPlayer = usePlayerStore((state) => state.sdkPlayer);
+  const spotifyPlayer = usePlayerStore((state) => state.spotifyPlayer);
   const currentRoomId = useWebSocketStore((state) => state.currentRoomId)
   const user = useAuthStore((state) => state.user);
   const createdBy = useRoomStore((state) => state.room?.createdBy)
@@ -88,7 +88,7 @@ export default function PlayerSection() {
     let isCancelled = false;
 
     async function pollUntilPlaying(expectedUri) {
-      const playerInstance = usePlayerStore.getState().sdkPlayer;
+      const playerInstance = usePlayerStore.getState().spotifyPlayer;
       if (!playerInstance || !expectedUri) return;
 
       const deadline = Date.now() + TRANSFER_GRACE_MS;
@@ -157,16 +157,16 @@ export default function PlayerSection() {
   async function handlePlaySong() {
     if (queue.length === 0) return;
     console.log("THIS IS QUEUE", queue)
-    if (sdkPlayer) {
+    if (spotifyPlayer) {
       try {
         console.log('[QueueSection] Unlocking browser audio via activateElement()...');
-        await sdkPlayer.activateElement();
-        await sdkPlayer.setVolume(0.8);
+        await spotifyPlayer.activateElement();
+        await spotifyPlayer.setVolume(0.8);
       } catch (err) {
         console.error('[QueueSection] activateElement or setVolume failed:', err);
       }
     } else {
-      console.warn('[QueueSection] sdkPlayer instance is missing from usePlayerStore!');
+      console.warn('[QueueSection] spotifyPlayer instance is missing from usePlayerStore!');
     }
 
     console.log('[QueueSection] Active deviceId at click time:', deviceId);

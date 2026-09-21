@@ -1,27 +1,38 @@
-import { useEffect, useRef } from 'react';
-import api from '../api/axios.js';
+/*
+Guide to setup a Spotify Player
+1. Download the script <script src="https://sdk.scdn.co/spotify-player.js"></script>
+2. Once the script is downloaded, we'll initialised the spotify playback SDk.
+3. Write handler to handle different events
+
+*/
+
+import { useEffect } from 'react';
+import { useRef } from 'react';
+import { toast } from 'sonner'
 import { usePlayerStore } from '../store/usePlayerStore.js';
+import api from '../api/axios.js'
 
 export function useSpotifyPlayer() {
-  // Single source of truth: read directly from the Zustand store.
-  // No parallel useState — avoids two copies of the same data drifting apart.
-  const player = usePlayerStore((state) => state.sdkPlayer);
-  const deviceId = usePlayerStore((state) => state.deviceId);
-  const isReady = usePlayerStore((state) => state.isReady);
+
+  // zustand variable and actions
+  const spotifyPlayer = usePlayerStore(state => state.spotifyPlayer);
+  const isPlayerReady = usePlayerStore(state => state.isPlayerReady);
+  const device = usePlayerStore(state => state.device);
 
   const playerRef = useRef(null);
-  const isInitializingRef = useRef(false);
+  const isPlayerInitializingRef = useRef(false);
 
   useEffect(() => {
-    if (playerRef.current || isInitializingRef.current) return;
+
+    if (isPlayerInitializingRef.current || playerRef.current) return;
+
 
     const initializePlayer = () => {
       if (!window.Spotify?.Player || playerRef.current) return;
-
-      isInitializingRef.current = true;
+      isPlayerInitializingRef.current = true;
 
       const spotifyPlayer = new window.Spotify.Player({
-        name: 'The Democratic Club',
+        name: 'Spotify-playback-sdk',
         getOAuthToken: async (cb) => {
           try {
             const res = await api.get('/auth/playback-token', { withCredentials: true });
@@ -39,55 +50,72 @@ export function useSpotifyPlayer() {
       });
 
       spotifyPlayer.addListener('ready', ({ device_id }) => {
-        console.log('[Spotify SDK] Ready with Device ID:', device_id);
-        spotifyPlayer.setVolume(0.8).catch(() => {});
+        toast.message(`The Spotify Playback SDK ready with deviceId: ${device_id}.`)
+        console.log(`The Spotify Playback SDK ready with deviceId: ${device_id}.`)
 
         usePlayerStore.setState({
-          deviceId: device_id,
-          isReady: true,
-          isSdkReady: true,
-          sdkPlayer: spotifyPlayer,
+          spotifyPlayer,
+          device: device_id,
+          isPlayerReady: true
         });
       });
 
-      spotifyPlayer.addListener('not_ready', ({ device_id }) => {
-        console.log('[Spotify SDK] Device offline:', device_id);
+      spotifyPlayer.addListener('not_ready', () => {
+        toast.message('The spotify playback SDK is offline.')
+        console.log('The spotify playback SDK is offline.')
         usePlayerStore.setState({
-          deviceId: null,
-          isReady: false,
-          isSdkReady: false,
-        });
-      });
+          device: null,
+          isPlayerReady: false
+        })
+      })
 
       spotifyPlayer.addListener('initialization_error', ({ message }) => {
         console.error('[Spotify SDK] Init error:', message);
-        usePlayerStore.setState({ isReady: false, isSdkReady: false });
-      });
+        usePlayerStore.setState({
+          spotifyPlayer: null,
+          device: null,
+          isPlayerReady: false,
+        });
+
+      })
 
       spotifyPlayer.addListener('authentication_error', ({ message }) => {
-        console.error('[Spotify SDK] Auth error:', message);
-        usePlayerStore.setState({ isReady: false, isSdkReady: false });
-      });
+        console.error('Auth error related to Spotify Playback SDK:', message);
+        usePlayerStore.setState({
+          spotifyPlayer: null,
+          device: null,
+          isPlayerReady: false,
+        });
+      })
 
       spotifyPlayer.addListener('account_error', ({ message }) => {
-        console.error('[Spotify SDK] Account error (Premium required):', message);
-        usePlayerStore.setState({ isReady: false, isSdkReady: false });
-      });
+        console.error('Premium required for Spotify Playback SDk:', message);
+        usePlayerStore.setState({
+          spotifyPlayer: null,
+          device: null,
+          isPlayerReady: false,
+        });
+      })
 
-      spotifyPlayer.connect();
-      playerRef.current = spotifyPlayer;
-      isInitializingRef.current = false;
-    };
+      // till this line we just creating the instance of Spotify Playback SDK, we did not connect to anything.
 
+      // now we need to register the device with spotify
+        spotifyPlayer.connect();
+        playerRef.current = spotifyPlayer;
+        isPlayerInitializingRef.current = false
+        toast.message('Your can Play songs now!')
+    }
+
+    // STEP 01: DOWNLOAD THE SCRIPT IN THE HTML
     if (window.Spotify?.Player) {
       initializePlayer();
     } else {
-      window.onSpotifyWebPlaybackSDKReady = initializePlayer;
-
+      window.onSpotifyWebPlaybackSDKReady = initializePlayer; // this will automatically triggerd when the script is loaded.
       if (!document.getElementById('spotify-player-sdk')) {
+
         const script = document.createElement('script');
+        script.src = "https://sdk.scdn.co/spotify-player.js";
         script.id = 'spotify-player-sdk';
-        script.src = 'https://sdk.scdn.co/spotify-player.js';
         script.async = true;
         script.onload = () => {
           if (window.Spotify?.Player) {
@@ -95,10 +123,11 @@ export function useSpotifyPlayer() {
           }
         };
         script.onerror = () => {
-          console.error('[Spotify SDK] Failed to load Web Playback SDK script.');
-          isInitializingRef.current = false;
-        };
-        document.body.appendChild(script);
+          toast.error('Error downloading the Spotify Player SDK script!')
+          console.log('Error downloading the Spotify Player SDK script!')
+          isPlayerInitializingRef.current = false;
+        }
+        document.body.appendChild(script)
       }
     }
 
@@ -107,16 +136,21 @@ export function useSpotifyPlayer() {
         playerRef.current.disconnect();
         playerRef.current = null;
       }
-      isInitializingRef.current = false;
+
+      isPlayerInitializingRef.current = false;
 
       usePlayerStore.setState({
-        sdkPlayer: null,
-        deviceId: null,
-        isReady: false,
-        isSdkReady: false,
-      });
-    };
-  }, []);
+        spotifyPlayer: null,
+        device: null,
+        isPlayerReady: false
+      })
 
-  return { player, deviceId, isReady };
+    }
+  }, [])
+
+  return {
+    spotifyPlayer,
+    isPlayerReady,
+    device
+  }
 }

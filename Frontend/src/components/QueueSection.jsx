@@ -10,7 +10,7 @@ export default function QueueSection({ isMobile }) {
   const queue = useWebSocketStore((state) => state.roomState.queue) || [];
   const setCurrentSong = usePlayerStore((state) => state.setCurrentSong);
   const isSdkReady = usePlayerStore((state) => state.isSdkReady);
-  const sdkPlayer = usePlayerStore((state) => state.sdkPlayer);
+  const spotifyPlayer = usePlayerStore((state) => state.spotifyPlayer);
   const deviceId = usePlayerStore((state) => state.deviceId);
   const removeSong = useWebSocketStore((state) => state.removeSong)
   const roomCode = useWebSocketStore((state) => state.roomState.roomCode)
@@ -20,16 +20,16 @@ export default function QueueSection({ isMobile }) {
   async function handlePlaySong() {
     if (queue.length === 0) return;
     console.log("THIS IS QUEUE", queue)
-    if (sdkPlayer) {
+    if (spotifyPlayer) {
       try {
         console.log('[QueueSection] Unlocking browser audio via activateElement()...');
-        await sdkPlayer.activateElement();
-        await sdkPlayer.setVolume(0.8);
+        await spotifyPlayer.activateElement();
+        await spotifyPlayer.setVolume(0.8);
       } catch (err) {
         console.error('[QueueSection] activateElement or setVolume failed:', err);
       }
     } else {
-      console.warn('[QueueSection] sdkPlayer instance is missing from usePlayerStore!');
+      console.warn('[QueueSection] spotifyPlayer instance is missing from usePlayerStore!');
     }
 
     console.log('[QueueSection] Active deviceId at click time:', deviceId);
