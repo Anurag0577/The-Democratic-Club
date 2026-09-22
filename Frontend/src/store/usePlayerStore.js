@@ -1,12 +1,7 @@
 import { create } from 'zustand';
 
 export const usePlayerStore = create((set, get) => ({
-  currentSong: null,
-  isPlaying: false,
-  spotifyPlayer: null, //
   isSdkReady: false,
-  isReady: false, //
-  deviceId: null, //
   playerStateChanged: {
     duration: 0,
     position: 0,
@@ -18,6 +13,8 @@ export const usePlayerStore = create((set, get) => ({
   isPlayerReady : false,
   device : null,
   spotifyPlayer : null,
+  isPlaying: false,
+  currentSong: null,
 
   setPlayerStateChangedLocal: (obj) => set((state) => ({
     playerStateChanged: { ...obj, source: 'local' },
