@@ -14,12 +14,14 @@ import { useWebSocketStore } from '../store/useWebSocketStore.js';
 import { PlaybackTimeline } from './PlaybackTimeline.jsx';
 import useAuthStore from '../store/useAuthStore.js'
 import { useRoomStore } from '../store/useRoomStore.js';
+import { toast } from 'sonner';
 export default function PlayerSection() {
 
   const { spotifyPlayer, device, isPlayerReady } = useSpotifyPlayer();
 
   // zustand states and actions
   const currentSong = usePlayerStore(state => state.currentSong);
+  const setCurrentSong = usePlayerStore(state => state.setCurrentSong);
   const isPlaying = usePlayerStore(state => state.isPlaying);
   const queue = useWebSocketStore(state => state.roomState.queue)
 
@@ -29,8 +31,16 @@ export default function PlayerSection() {
 
   // handlePlaySong - play top most song of the queue
   const handlePlaySong = () => {
-    
+    if(!queue.length){
+      toast.message("The Queue is empty! Please add song first.")
+      console.log("The Queue is empty! Please add song first.")
+      return
+    }
+    const nextSong = queue[0];
+    setCurrentSong(nextSong) //  this can trigger the next song play
   }
+
+  const 
 
   return (
     <div className="border border-white/10 rounded-2xl overflow-hidden h-full flex flex-col relative bg-black/0">
