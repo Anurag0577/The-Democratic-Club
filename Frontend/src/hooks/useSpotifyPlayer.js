@@ -23,7 +23,7 @@ export function useSpotifyPlayer() {
   const isPlayerInitializingRef = useRef(false);
 
   useEffect(() => {
-
+    console.log('🟢 [useSpotifyPlayer] SETUP running');
     if (isPlayerInitializingRef.current || playerRef.current) return;
 
 
@@ -146,6 +146,10 @@ export function useSpotifyPlayer() {
       })
 
     }
+
+    return () => {
+    console.log('🔴 [useSpotifyPlayer] CLEANUP running - values being destroyed!');
+  };
   }, [])
 
   return {

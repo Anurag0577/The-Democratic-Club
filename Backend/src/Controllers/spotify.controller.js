@@ -185,10 +185,10 @@ const getSpotifyProfile = async (req, res) => {
 
 // backend: new route
 const playTrack = async (req, res) => {
-  const { deviceId, spotifyUri } = req.body;
+  const { device, spotifyUri } = req.body;
   const userId = req.user.id; // host playing on their own device
 
-  console.log('[Spotify] deviceId received from frontend:', deviceId);
+  console.log('[Spotify] device received from frontend:', device);
 
   const user = await User.findById(userId).select(
     '+spotify_access_token +spotify_refresh_token spotify_token_expires_at'
@@ -196,7 +196,7 @@ const playTrack = async (req, res) => {
   const token = await ensureValidSpotifyToken(user);
   if (!token) return res.status(400).json({ error: 'Spotify not connected' });
 
-  const response = await fetchWithTimeout(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+  const response = await fetchWithTimeout(`https://api.spotify.com/v1/me/player/play?device_id=${device}`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -204,6 +204,8 @@ const playTrack = async (req, res) => {
     },
     body: JSON.stringify({ uris: [spotifyUri] }),
   }, DEFAULT_FETCH_TIMEOUT);
+
+  console.log('--------', response)
 
   if (!response.ok && response.status !== 204) {
     const err = await response.text();

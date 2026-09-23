@@ -84,7 +84,6 @@ const useWebSocketStore = create((set, get) => ({
                 position: 0,
                 paused: false
             }
-            usePlayerStore.getState().setPlayerStateChangedRemote(playbackStatusObj)
             usePlayerStore.getState().setIsPlaying(true);
         })
 
@@ -148,11 +147,6 @@ const useWebSocketStore = create((set, get) => ({
 
                 usePlayerStore.getState().setCurrentSong(anchor.track);
                 usePlayerStore.getState().setIsPlaying(anchor.isPlaying);
-                usePlayerStore.getState().setPlayerStateChangedRemote({
-                    duration: anchor.durationMs,
-                    position: positionMs,
-                    paused: !anchor.isPlaying,
-                }, { syncIsPlaying: !isRoomHost() });
             }
 
             console.log('-- this is the value of current roomState', get().roomState)
@@ -160,10 +154,6 @@ const useWebSocketStore = create((set, get) => ({
 
         websocketService.onMessage(messageType.PLAYBACK_STATUS, (payload) => {
             console.log('Updated playback status', payload)
-            // Host drives isPlaying from the local SDK; ignore echoed room status.
-            usePlayerStore.getState().setPlayerStateChangedRemote(payload, {
-                syncIsPlaying: !isRoomHost(),
-            });
         })
 
     },
