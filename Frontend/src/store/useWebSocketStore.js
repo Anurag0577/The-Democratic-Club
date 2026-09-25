@@ -1,10 +1,10 @@
-import {create} from "zustand";
+import { create } from "zustand";
 import { websocketService } from "../services/websocketServices.js";
-import {messageType} from "../Utilities/messageType.js"
+import { messageType } from "../Utilities/messageType.js"
 import { usePlayerStore } from "../store/usePlayerStore.js";
 import useAuthStore from "./useAuthStore.js";
 import { useRoomStore } from "./useRoomStore.js";
-import {toast} from 'sonner'
+import { toast } from 'sonner'
 
 function isRoomHost() {
     const user = useAuthStore.getState().user;
@@ -24,8 +24,8 @@ const useWebSocketStore = create((set, get) => ({
     currentUserId: null,
     currentRoomId: null,
     error: null,
-    shouldNavigateToDashboard : false,
-    clearNavigateFlag : () => set({shouldNavigateToDashboard: false}),
+    shouldNavigateToDashboard: false,
+    clearNavigateFlag: () => set({ shouldNavigateToDashboard: false }),
 
     joinRoom: (roomId, userId, roomCode) => {
 
@@ -33,7 +33,7 @@ const useWebSocketStore = create((set, get) => ({
 
 
         websocketService.connect(roomId, userId, () => {
-            websocketService.sendMessage(messageType.JOIN_ROOM, {roomCode, userId});
+            websocketService.sendMessage(messageType.JOIN_ROOM, { roomCode, userId });
         });
 
         set({
@@ -53,7 +53,7 @@ const useWebSocketStore = create((set, get) => ({
         });
         websocketService.disconnect();
         set({
-            roomState : {
+            roomState: {
                 queue: [],
                 nowPlaying: null,
                 members: [],
@@ -66,59 +66,57 @@ const useWebSocketStore = create((set, get) => ({
 
     },
 
-    registerHanlders : () => {
+    registerHanlders: () => {
 
         websocketService.onMessage(messageType.QUEUE_UPDATE, (payload) => {
             console.log("Queue updated!", payload.queue)
             set((state) => ({
-                roomState : {...state.roomState, queue: payload.queue}
+                roomState: { ...state.roomState, queue: payload.queue }
             }))
             console.log(get().roomState)
         })
 
         websocketService.onMessage(messageType.NOW_PLAYING, (payload) => {
-            console.log("Now playing track information", payload.track )
+            console.log("Now playing track information", payload.track)
             usePlayerStore.getState().setCurrentSong(payload.track);
-            const playbackStatusObj = {
-                duration: payload.track?.song_dur,
-                position: 0,
-                paused: false
-            }
+            
             usePlayerStore.getState().setIsPlaying(true);
+            usePlayerStore.getState().setPlayerStateChanged({
+                duration: payload.track?.song_dur ?? 0,
+                position: 0,
+                paused: false,
+                receivedAt: Date.now(),
+            });
         })
 
-        // websocketService.onMessage(messageType.PLAYBACK_STATUS, (payload) => {
-        //     console.log("Playback status", payload.isPlaying);
-        //     set(state => ({
-        //         roomState: {...state.roomState, isPlaying: payload.isPlaying}
-        //     }))
-        // })
-
         websocketService.onMessage(messageType.MEMBER_UPDATED, (payload) => {
-            console.log("Member update", payload.members )
+            console.log("Member update", payload.members)
             set((state) => ({
-                roomState: {...state.roomState, members: payload.members}
+                roomState: { ...state.roomState, members: payload.members }
             }))
             console.log(get().roomState)
         })
 
-            websocketService.onMessage(messageType.ROOM_CLOSED, (payload) => {
-                console.log("The host has ended the room.")
-                toast.message("The host has ended the room.")
-                websocketService.disconnect(); 
-                set({
-                    roomState: {
-                        queue: [],
-                        nowPlaying: null,
-                        members: [],
-                        isPlaying: null,
-                        roomCode: null,
-                    },
-                    currentRoomId: null,
-                    currentUserId: null,
-                    shouldNavigateToDashboard: true,
-                });
-            })
+        websocketService.onMessage(messageType.ROOM_CLOSED, (payload) => {
+            console.log("The host has ended the room.")
+            toast.message("The host has ended the room.")
+            websocketService.disconnect();
+            usePlayerStore.setState({currentSong: null})
+            usePlayerStore.setState({isPlaying: false})
+            console.log("------------------- THIS IS CURRENT SONG: ", usePlayerStore.getState().currentSong)
+            set({
+                roomState: {
+                    queue: [],
+                    nowPlaying: null,
+                    members: [],
+                    isPlaying: null,
+                    roomCode: null,
+                },
+                currentRoomId: null,
+                currentUserId: null,
+                shouldNavigateToDashboard: true,
+            });
+        })
 
         websocketService.onMessage(messageType.ERROR, (payload) => {
             console.error('Server error:', payload);
@@ -147,6 +145,12 @@ const useWebSocketStore = create((set, get) => ({
 
                 usePlayerStore.getState().setCurrentSong(anchor.track);
                 usePlayerStore.getState().setIsPlaying(anchor.isPlaying);
+                usePlayerStore.getState().setPlayerStateChanged({
+                    duration: anchor.durationMs ?? 0,
+                    position: positionMs,
+                    paused: !anchor.isPlaying,
+                    receivedAt: Date.now(),
+                });
             }
 
             console.log('-- this is the value of current roomState', get().roomState)
@@ -154,30 +158,37 @@ const useWebSocketStore = create((set, get) => ({
 
         websocketService.onMessage(messageType.PLAYBACK_STATUS, (payload) => {
             console.log('Updated playback status', payload)
+            usePlayerStore.getState().setIsPlaying(!payload.paused);
+            usePlayerStore.getState().setPlayerStateChanged({
+                duration: payload.duration,
+                position: payload.position,
+                paused: payload.paused,
+                receivedAt: Date.now(),
+            });
         })
 
     },
 
     // SEND MESSAGES TO THE WEBSOCKET SERVER
 
-    addSong : (track, roomCode, roomId) => {
-        websocketService.sendMessage(messageType.ADD_SONG, {track, roomCode, roomId})
+    addSong: (track, roomCode, roomId) => {
+        websocketService.sendMessage(messageType.ADD_SONG, { track, roomCode, roomId })
     },
 
-    removeSong : (track, roomCode, roomId) => {
-        websocketService.sendMessage(messageType.REMOVE_SONG, {track, roomCode, roomId})
+    removeSong: (track, roomCode, roomId) => {
+        websocketService.sendMessage(messageType.REMOVE_SONG, { track, roomCode, roomId })
     },
 
-    addUpvote : (track_id, roomId, roomCode, upvoted_by) => {
-        websocketService.sendMessage(messageType.ADD_UPVOTE, {track_id, roomId, roomCode, upvoted_by})
+    addUpvote: (track_id, roomId, roomCode, upvoted_by) => {
+        websocketService.sendMessage(messageType.ADD_UPVOTE, { track_id, roomId, roomCode, upvoted_by })
     },
 
-    removeUpvote : (track_id, roomId, roomCode, removedUpvote_by) => {
-        websocketService.sendMessage(messageType.REMOVE_UPVOTE, {track_id, roomId, roomCode, removedUpvote_by})
+    removeUpvote: (track_id, roomId, roomCode, removedUpvote_by) => {
+        websocketService.sendMessage(messageType.REMOVE_UPVOTE, { track_id, roomId, roomCode, removedUpvote_by })
     },
 
-    songChanged : (track, roomCode) => {
-        websocketService.sendMessage(messageType.SONG_CHANGED, { track, roomCode})
+    songChanged: (track, roomCode) => {
+        websocketService.sendMessage(messageType.SONG_CHANGED, { track, roomCode })
     },
 
     play: () => {
@@ -189,9 +200,9 @@ const useWebSocketStore = create((set, get) => ({
     },
 
     updatePlaybackStatus: (duration, position, paused, roomCode, track) => {
-        websocketService.sendMessage(messageType.UPADATE_PLAYBACK_STATUS, {duration, position, paused, roomCode, track})
+        websocketService.sendMessage(messageType.UPADATE_PLAYBACK_STATUS, { duration, position, paused, roomCode, track })
     },
 
 }))
 
-export {useWebSocketStore};
+export { useWebSocketStore };

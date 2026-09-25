@@ -9,10 +9,9 @@ export const usePlayerStore = create((set, get) => ({
     source: 'local'
   },
 
-  // NEWLY CREATED
-  isPlayerReady : false,
-  device : null,
-  spotifyPlayer : null,
+  isPlayerReady: false,
+  device: null,
+  spotifyPlayer: null,
   isPlaying: false,
   currentSong: null,
 
@@ -20,6 +19,11 @@ export const usePlayerStore = create((set, get) => ({
   setIsPlaying: (status) => set({ isPlaying: status }),
   setSdkPlayer: (player) => set({ spotifyPlayer: player }),
   setIsSdkReady: (ready) => set({ isSdkReady: ready }),
-  setIsReady: (ready) => set({ isReady: ready }),
-  setDeviceId: (id) => set({ deviceId: id }),
+  setIsReady: (ready) => set({ isPlayerReady: ready }),
+  setDeviceId: (id) => set({ device: id }),
+
+  setPlayerStateChanged: (partial) =>
+    set((state) => ({
+      playerStateChanged: { ...state.playerStateChanged, ...partial }
+    })),
 }));

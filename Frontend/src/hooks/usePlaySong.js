@@ -1,11 +1,10 @@
-
 import { useWebSocketStore } from "../store/useWebSocketStore.js";
 import { usePlayerStore } from '../store/usePlayerStore.js';
+import { toast } from 'sonner';
 
 export default function usePlaySong() {
 
     const setCurrentSong = usePlayerStore(state => state.setCurrentSong)
-    const isPlaying = usePlayerStore(state => state.isPlaying)
     const spotifyPlayer = usePlayerStore(state => state.spotifyPlayer)
     const queue = useWebSocketStore(state => state.roomState.queue)
     const roomCode = useWebSocketStore(state => state.roomState.roomCode)
@@ -40,7 +39,7 @@ export default function usePlaySong() {
             },
         }));
 
-        removeSong(nextTrack, roomCode, currentRoomId)
+        removeSong(nextSong, roomCode, currentRoomId)
 
     }
 

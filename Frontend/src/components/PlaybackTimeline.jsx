@@ -1,27 +1,39 @@
 import { useEffect, useState } from "react";
 import { usePlayerStore } from "../store/usePlayerStore.js"
+import usePlaybackStarted from "../hooks/usePlaybackStarted.js";
 
 export function PlaybackTimeline() {
   const playerStateChanged = usePlayerStore(state => state.playerStateChanged);
+  const isPlaying = usePlayerStore(state => state.isPlaying);
 
-  const [tickingPosition, setTickingPosition] = useState(0);
+  // hook
+  const isPlaybackStarted = usePlaybackStarted();
+
+  const [displayPosition, setDisplayPosition] = useState(0);
 
   useEffect(() => {
     if (!playerStateChanged) return;
 
-    setTickingPosition(playerStateChanged.position);
+    const { position, duration, receivedAt } = playerStateChanged;
+    const elapsed = receivedAt ? Date.now() - receivedAt : 0;
+    const startingPosition = Math.min(position + elapsed, duration || Infinity);
 
-    if (playerStateChanged.paused) return;
+    setDisplayPosition(startingPosition);
+  }, [playerStateChanged]);
 
+  useEffect(() => {
+    if (!isPlaying || !isPlaybackStarted) return;
+
+    const duration = playerStateChanged?.duration;
     const interval = setInterval(() => {
-      setTickingPosition((prev) => {
+      setDisplayPosition((prev) => {
         const next = prev + 1000;
-        return next >= playerStateChanged.duration ? playerStateChanged.duration : next;
+        return duration ? Math.min(next, duration) : next;
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [playerStateChanged]);
+  }, [isPlaying, playerStateChanged, isPlaybackStarted]);
 
   if (!playerStateChanged) return null;
 
@@ -33,12 +45,12 @@ export function PlaybackTimeline() {
         <div
           className="bg-white h-full transition-all duration-300"
           style={{
-            width: `${durationMs ? (tickingPosition / durationMs) * 100 : 0}%`,
+            width: `${durationMs ? (displayPosition / durationMs) * 100 : 0}%`,
           }}
         ></div>
       </div>
       <div className="flex justify-between text-white/60 text-xs">
-        <span>{msToTime(tickingPosition)}</span>
+        <span>{msToTime(displayPosition)}</span>
         <span>{msToTime(durationMs)}</span>
       </div>
     </div>

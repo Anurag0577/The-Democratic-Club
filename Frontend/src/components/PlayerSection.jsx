@@ -16,6 +16,7 @@ import { PlaybackToggle } from './PlaybackToggle.jsx';
 import { NextBtn } from './NextBtn.jsx';
 import { PlayerVinyleSpinner } from './PlayerVinyleSpinner.jsx';
 import StartPlayingSongBtn from './StartPlayingSongBtn.jsx';
+import { useAutoAdvance } from '../hooks/useAutoAdvance.js';
 
 export default function PlayerSection() {
 
@@ -29,6 +30,8 @@ export default function PlayerSection() {
 
   // variable from hooks
   const accentColor = useRoomStore(state => state.accentColor)
+
+  useAutoAdvance();
 
   useEffect(() => {
     
